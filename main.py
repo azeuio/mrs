@@ -24,16 +24,12 @@ if __name__ == "__main__":
     #     )
     # )
 
-    res = api.Search().entity("recording").query("star wars").limit(1).execute()
-    # print(res)
-    # res = (
-    #     api.Browse()
-    #     .entity("collection")
-    #     .artist(res.id)
-    #     .limit(10)
-    #     .execute()
-    #     .collections[0]
-    # )
-    # res = api.Browse().entity("instrument").collection(res.id).limit(1).execute()
+    ## Searh for releases of an artist
+    # get artist
+    res = api.Search().entity("artist").query("stromae").limit(1).execute().artists[0]
+    # get linked releases
+    res = api.Browse().entity("release").artist(res.id).limit(10).execute()
+    # get their titles
+    res = list(map(lambda x: x.title, res.releases))
 
     print(res)

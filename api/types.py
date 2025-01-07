@@ -200,7 +200,7 @@ class Track:
     length: int
 
 
-@dataclasses.data
+@dataclasses.dataclass
 class Media:
     position: int
     format: str
@@ -210,19 +210,26 @@ class Media:
 
 
 @dataclasses.dataclass
+class TextRepresentation:
+    language: str
+    script: str
+
+
+@dataclasses.dataclass
 class Release:
     id: str
-    status: str
-    status_id: str
-    count: int
-    title: str
     date: str
     country: str
-    track_count: int
-    artist_credit: List[ArtistCredit]
-    release_group: ReleaseGroup
+    asin: str
+    barcode: str
+    status: str
+    status_id: str
+    title: str
+    disambiguation: str
+    packaging: str
+    quality: str
+    text_representation: TextRepresentation
     release_events: List[ReleaseEvent]
-    media: List[Dict[str, str]]
 
 
 @dataclasses.dataclass

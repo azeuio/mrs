@@ -2,8 +2,16 @@ import dataclasses
 import requests
 
 from typing import Any, Dict, List, Literal, overload
-from api.api import ROOT, parse_area, parse_artist, parse_event
-from api.types import _ENTITY_TYPES, ENTITY_TYPING, Area, Artist, Collection, Event
+from api.api import ROOT, parse_area, parse_artist, parse_event, parse_release
+from api.types import (
+    _ENTITY_TYPES,
+    ENTITY_TYPING,
+    Area,
+    Artist,
+    Collection,
+    Event,
+    Release,
+)
 
 
 class AbstractBrowse:
@@ -55,7 +63,6 @@ class AbstractBrowse:
     def execute(self):
         assert self._entity is not None, "Entity type must be set"
         res = self._browse(self._entity, self._query_params)
-        print(res)
         return res
 
     @staticmethod
@@ -265,7 +272,6 @@ class EventBrowse(AbstractBrowse):
 
     def execute(self) -> Result:
         res = super().execute()
-        print(res)
         return self.Result(
             event_count=res["event-count"],
             event_offset=res["event-offset"],
@@ -273,12 +279,58 @@ class EventBrowse(AbstractBrowse):
         )
 
 
-# class InstrumentBrowse(AbstractBrowse):
-#     @dataclasses.dataclass
-#     class Result:
-#         instrument_count: int
-#         instrument_offset: int
-#         instruments: List[Instrument]
+class ReleaseBrowse(AbstractBrowse):
+    @dataclasses.dataclass
+    class Result:
+        release_count: int
+        release_offset: int
+        releases: List[Release]
+
+    _entity: AbstractBrowse.LINKED_ENTITY_TYPE = "release"
+
+    def __init__(self, query_params: Dict[str, str]):
+        super().__init__()
+        self._query_params = query_params
+
+    def area(self, area_id: str):
+        self._query_params["area"] = area_id
+        return self
+
+    def artist(self, artist_id: str):
+        self._query_params["artist"] = artist_id
+        return self
+
+    def collection(self, collection_id: str):
+        self._query_params["collection"] = collection_id
+        return self
+
+    def label(self, label_id: str):
+        self._query_params["label"] = label_id
+        return self
+
+    def track(self, track_id: str):
+        self._query_params["track"] = track_id
+        return self
+
+    def track_artist(self, track_artist_id: str):
+        self._query_params["track_artist"] = track_artist_id
+        return self
+
+    def recording(self, recording_id: str):
+        self._query_params["recording"] = recording_id
+        return self
+
+    def release_group(self, release_group_id: str):
+        self._query_params["release-group"] = release_group_id
+        return self
+
+    def execute(self) -> Result:
+        res = super().execute()
+        return self.Result(
+            release_count=res["release-count"],
+            release_offset=res["release-offset"],
+            releases=[parse_release(release) for release in res["releases"]],
+        )
 
 
 class Browse(AbstractBrowse):
@@ -290,6 +342,8 @@ class Browse(AbstractBrowse):
     def entity(self, entity: Literal["collection"]) -> CollectionBrowse: ...
     @overload
     def entity(self, entity: Literal["event"]) -> EventBrowse: ...
+    @overload
+    def entity(self, entity: Literal["release"]) -> ReleaseBrowse: ...
 
     @overload
     def entity(self, entity: Literal["instrument"]) -> AreaBrowse: ...
@@ -304,4 +358,6 @@ class Browse(AbstractBrowse):
             return EventBrowse(self._query_params)
         if entity == "instrument":
             return AreaBrowse(self._query_params).entity("instrument")
+        if entity == "release":
+            return ReleaseBrowse(self._query_params)
         return super().entity(entity)

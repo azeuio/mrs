@@ -9,6 +9,7 @@ from api.types import (
     Area,
     AreaSearchResults,
     Artist,
+    ArtistCredit,
     ArtistSearchResults,
     Coordinates,
     Event,
@@ -25,9 +26,12 @@ from api.types import (
     Recording,
     RecordingSearchResults,
     Release,
+    ReleaseEvent,
+    ReleaseGroup,
     ReleaseSearchResults,
     SearchResults,
     Tag,
+    TextRepresentation,
 )
 
 ROOT = "https://musicbrainz.org/ws/2/"
@@ -121,6 +125,54 @@ def parse_event(event: dict) -> Event:
         life_span=parse_life_span(event.get("life-span")),
         name=event.get("name"),
         relations=event.get("relations"),
+    )
+
+
+def parse_artist_credit(artist: dict) -> ArtistCredit:
+    return ArtistCredit(
+        name=artist.get("name"),
+        artists=[parse_artist(artist) for artist in artist.get("artists") or []],
+    )
+
+
+def parse_release_group(release_group: dict) -> ReleaseGroup:
+    return ReleaseGroup(
+        id=release_group.get("id"),
+        title=release_group.get("title"),
+        primary_type=release_group.get("primary-type"),
+        primary_type_id=release_group.get("primary-type-id"),
+        secondary_types=release_group.get("secondary-types"),
+        secondary_types_id=release_group.get("secondary-types-id"),
+    )
+
+
+def parse_release_event(event: dict) -> ReleaseEvent:
+    return ReleaseEvent(
+        date=event.get("date"),
+        area=parse_area(event.get("area")),
+    )
+
+
+def parse_release(release: dict) -> Release:
+    return Release(
+        id=release.get("id"),
+        date=release.get("date"),
+        country=release.get("country"),
+        asin=release.get("asin"),
+        barcode=release.get("barcode"),
+        status=release.get("status"),
+        status_id=release.get("status_id"),
+        title=release.get("title"),
+        disambiguation=release.get("disambiguation"),
+        packaging=release.get("packaging"),
+        quality=release.get("quality"),
+        text_representation=TextRepresentation(
+            language=release.get("text-representation").get("language"),
+            script=release.get("text-representation").get("script"),
+        ),
+        release_events=[
+            parse_release_event(event) for event in release.get("release-events") or []
+        ],
     )
 
 
@@ -329,27 +381,7 @@ def search(
             created=data.get("created"),
             count=data.get("count"),
             offset=data.get("offset"),
-            releases=[
-                Release(
-                    id=release.get("id"),
-                    score=release.get("score"),
-                    title=release.get("title"),
-                    status=release.get("status"),
-                    status_id=release.get("status-id"),
-                    quality=release.get("quality"),
-                    quality_id=release.get("quality-id"),
-                    disambiguation=release.get("disambiguation"),
-                    date=release.get("date"),
-                    country=release.get("country"),
-                    barcode=release.get("barcode"),
-                    asin=release.get("asin"),
-                    tags=[
-                        Tag(count=tag.get("count"), name=tag.get("name"))
-                        for tag in release.get("tags")
-                    ],
-                )
-                for release in data.get("releases")
-            ],
+            releases=[parse_release(release) for release in data.get("releases")],
         )
     print(data)
     return SearchResults(
