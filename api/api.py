@@ -10,11 +10,22 @@ from api.types import (
     AreaSearchResults,
     Artist,
     ArtistSearchResults,
+    Coordinates,
     Event,
     EventSearchResults,
     Genre,
     GenreSearchResults,
+    Instrument,
+    InstrumentSearchResults,
+    Label,
+    LabelSearchResults,
     LifeSpan,
+    Place,
+    PlaceSearchResults,
+    Recording,
+    RecordingSearchResults,
+    Release,
+    ReleaseSearchResults,
     SearchResults,
     Tag,
 )
@@ -22,6 +33,16 @@ from api.types import (
 ROOT = "https://musicbrainz.org/ws/2/"
 
 # entity types (area, artist, event, genre, instrument, label, place, recording, release, release-group, series, work, url)
+
+
+def parse_coordinates(coordinates: dict) -> Coordinates:
+    try:
+        return Coordinates(
+            latitude=float(coordinates.get("latitude")),
+            longitude=float(coordinates.get("longitude")),
+        )
+    except (ValueError, TypeError):
+        return None
 
 
 def parse_area(area: dict) -> Area:
@@ -107,24 +128,38 @@ def parse_event(event: dict) -> Event:
 def search(
     entity: Literal["area"], query: str, limit: int = 10, offset: int = 0
 ) -> AreaSearchResults: ...
-
-
 @overload
 def search(
     entity: Literal["artist"], query: str, limit: int = 10, offset: int = 0
 ) -> ArtistSearchResults: ...
-
-
 @overload
 def search(
     entity: Literal["event"], query: str, limit: int = 10, offset: int = 0
 ) -> EventSearchResults: ...
-
-
 @overload
 def search(
     entity: Literal["genre"], query: str, limit: int = 10, offset: int = 0
 ) -> GenreSearchResults: ...
+@overload
+def search(
+    entity: Literal["instrument"], query: str, limit: int = 10, offset: int = 0
+) -> InstrumentSearchResults: ...
+@overload
+def search(
+    entity: Literal["label"], query: str, limit: int = 10, offset: int = 0
+) -> LabelSearchResults: ...
+@overload
+def search(
+    entity: Literal["place"], query: str, limit: int = 10, offset: int = 0
+) -> PlaceSearchResults: ...
+@overload
+def search(
+    entity: Literal["recording"], query: str, limit: int = 10, offset: int = 0
+) -> RecordingSearchResults: ...
+@overload
+def search(
+    entity: Literal["release"], query: str, limit: int = 10, offset: int = 0
+) -> ReleaseSearchResults: ...
 
 
 @overload
@@ -197,6 +232,123 @@ def search(
                     disambiguation=genre.get("disambiguation"),
                 )
                 for genre in data.get("genres")
+            ],
+        )
+    if entity == "instrument":
+        return InstrumentSearchResults(
+            created=data.get("created"),
+            count=data.get("count"),
+            offset=data.get("offset"),
+            instruments=[
+                Instrument(
+                    id=instrument.get("id"),
+                    type=instrument.get("type"),
+                    type_id=instrument.get("type-id"),
+                    name=instrument.get("name"),
+                    score=instrument.get("score"),
+                    aliases=[parse_alias(alias) for alias in instrument.get("aliases")],
+                    tags=[
+                        Tag(count=tag.get("count"), name=tag.get("name"))
+                        for tag in instrument.get("tags")
+                    ],
+                )
+                for instrument in data.get("instruments")
+            ],
+        )
+    if entity == "label":
+        return LabelSearchResults(
+            created=data.get("created"),
+            count=data.get("count"),
+            offset=data.get("offset"),
+            labels=[
+                Label(
+                    id=label.get("id"),
+                    type=label.get("type"),
+                    type_id=label.get("type-id"),
+                    score=label.get("score"),
+                    name=label.get("name"),
+                    sort_name=label.get("sort-name"),
+                    label_code=label.get("label-code"),
+                    disambiguation=label.get("disambiguation"),
+                    country=label.get("country"),
+                    area=parse_area(label.get("area")),
+                    life_span=parse_life_span(label.get("life-span")),
+                    aliases=[parse_alias(alias) for alias in label.get("aliases")],
+                    tags=[
+                        Tag(count=tag.get("count"), name=tag.get("name"))
+                        for tag in label.get("tags")
+                    ],
+                )
+                for label in data.get("labels")
+            ],
+        )
+    if entity == "place":
+        return PlaceSearchResults(
+            created=data.get("created"),
+            count=data.get("count"),
+            offset=data.get("offset"),
+            places=[
+                Place(
+                    id=place.get("id"),
+                    type=place.get("type"),
+                    type_id=place.get("type-id"),
+                    score=place.get("score"),
+                    name=place.get("name"),
+                    address=place.get("address"),
+                    area=parse_area(place.get("area")),
+                    coordinates=parse_coordinates(place.get("coordinates")),
+                    life_span=parse_life_span(place.get("life-span")),
+                    aliases=[parse_alias(alias) for alias in place.get("aliases")],
+                )
+                for place in data.get("places")
+            ],
+        )
+    if entity == "recording":
+        return RecordingSearchResults(
+            created=data.get("created"),
+            count=data.get("count"),
+            offset=data.get("offset"),
+            recordings=[
+                Recording(
+                    id=recording.get("id"),
+                    score=recording.get("score"),
+                    title=recording.get("title"),
+                    length=recording.get("length"),
+                    disambiguation=recording.get("disambiguation"),
+                    video=recording.get("video"),
+                    tags=[
+                        Tag(count=tag.get("count"), name=tag.get("name"))
+                        for tag in recording.get("tags")
+                    ],
+                )
+                for recording in data.get("recordings")
+            ],
+        )
+    if entity == "release":
+        return ReleaseSearchResults(
+            created=data.get("created"),
+            count=data.get("count"),
+            offset=data.get("offset"),
+            releases=[
+                Release(
+                    id=release.get("id"),
+                    score=release.get("score"),
+                    title=release.get("title"),
+                    status=release.get("status"),
+                    status_id=release.get("status-id"),
+                    quality=release.get("quality"),
+                    quality_id=release.get("quality-id"),
+                    disambiguation=release.get("disambiguation"),
+                    date=release.get("date"),
+                    country=release.get("country"),
+                    barcode=release.get("barcode"),
+                    asin=release.get("asin"),
+                    tags=[
+                        Tag(count=tag.get("count"), name=tag.get("name"))
+                        for tag in release.get("tags")
+                    ],
+                )
+                for release in data.get("releases")
             ],
         )
     print(data)

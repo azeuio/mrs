@@ -43,7 +43,24 @@ class Genre:
     disambiguation: str
 
 
+@dataclasses.dataclass
+class Collection:
+    id: str
+    name: str
+    type: str
+    type_id: str
+    count: int
+    entity_type: str
+    editor: str
+
+
 #################### SearchResults ####################
+
+
+@dataclasses.dataclass
+class Coordinates:
+    latitude: float
+    longitude: float
 
 
 @dataclasses.dataclass
@@ -112,6 +129,115 @@ class Event:
 
 
 @dataclasses.dataclass
+class Instrument:
+    id: str
+    type: str
+    type_id: str
+    name: str
+    score: int
+    aliases: List[Alias]
+    tags: List[Tag]
+
+
+@dataclasses.dataclass
+class Label:
+    id: str
+    type: str
+    type_id: str
+    score: int
+    name: str
+    sort_name: str
+    label_code: int
+    disambiguation: str
+    country: str
+    area: Area
+    life_span: LifeSpan
+    aliases: List[Alias]
+    tags: List[Tag]
+
+
+@dataclasses.dataclass
+class Place:
+    id: str
+    type: str
+    type_id: str
+    score: int
+    name: str
+    address: str
+    area: Area
+    coordinates: Coordinates
+    life_span: LifeSpan
+    aliases: List[Alias]
+
+
+@dataclasses.dataclass
+class ArtistCredit:
+    name: str
+    artists: List[Artist]
+
+
+@dataclasses.dataclass
+class ReleaseGroup:
+    id: str
+    title: str
+    primary_type: str
+    primary_type_id: str
+    secondary_types: List[str]
+    secondary_types_id: List[str]
+
+
+@dataclasses.dataclass
+class ReleaseEvent:
+    date: str
+    area: Area
+
+
+@dataclasses.dataclass
+class Track:
+    id: str
+    number: str
+    title: str
+    length: int
+
+
+@dataclasses.data
+class Media:
+    position: int
+    format: str
+    track_count: int
+    track_offset: int
+    track: List[Track]
+
+
+@dataclasses.dataclass
+class Release:
+    id: str
+    status: str
+    status_id: str
+    count: int
+    title: str
+    date: str
+    country: str
+    track_count: int
+    artist_credit: List[ArtistCredit]
+    release_group: ReleaseGroup
+    release_events: List[ReleaseEvent]
+    media: List[Dict[str, str]]
+
+
+@dataclasses.dataclass
+class Recording:
+    id: str
+    score: int
+    title: str
+    length: int
+    video: bool
+    artist_credit: List[ArtistCredit]
+    first_release_date: str
+    releases: List[Dict[str, str]]
+
+
+@dataclasses.dataclass
 class SearchResults:
     created: str
     count: int
@@ -136,6 +262,31 @@ class EventSearchResults(SearchResults):
 @dataclasses.dataclass
 class GenreSearchResults(SearchResults):
     genres: List[Genre]
+
+
+@dataclasses.dataclass
+class InstrumentSearchResults(SearchResults):
+    instruments: List[Instrument]
+
+
+@dataclasses.dataclass
+class LabelSearchResults(SearchResults):
+    labels: List[Label]
+
+
+@dataclasses.dataclass
+class PlaceSearchResults(SearchResults):
+    places: List[Place]
+
+
+@dataclasses.dataclass
+class RecordingSearchResults(SearchResults):
+    recordings: List[Recording]
+
+
+@dataclasses.dataclass
+class ReleaseSearchResults(SearchResults):
+    releases: List[Release]
 
 
 #################### LookupResults ####################
