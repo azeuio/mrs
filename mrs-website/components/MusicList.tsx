@@ -19,8 +19,12 @@ export default function MusicList({
 	playlistIndex,
 }: MusicListProps) {
 	const handleLike = (id: string, value: boolean | undefined) => {
-		setTracks((prev: TrackInterface[]) =>
-			prev.map((track) => (track.id === id ? { ...track, liked: value } : track)),
+		console.log('id', id, 'value', value);
+
+		setTracks((prev) =>
+			prev.map((track) =>
+				track.id === id ? { ...track, liked: value === undefined ? undefined : value } : track,
+			),
 		);
 	};
 
@@ -35,7 +39,7 @@ export default function MusicList({
 	};
 
 	return (
-		<Card className='w-full h-full flex flex-col shadow-lg'>
+		<Card className='w-full h-full flex flex-col shadow-lg overflow-scroll'>
 			<CardHeader>
 				<CardTitle className='text-center'>
 					<h3 className='scroll-m-20 text-2xl font-semibold tracking-tight'>
@@ -47,7 +51,7 @@ export default function MusicList({
 				{tracks.map((track) => (
 					<div key={track.id} className='flex w-full p-1 justify-between items-center'>
 						<div className='flex items-center'>
-							<span className='text-sm font-medium mr-2'>{track.title}</span>
+							<p className='text-md font-medium mr-2'>{track.title}</p>
 						</div>
 						<div className='flex space-x-2'>
 							<Button
@@ -63,6 +67,8 @@ export default function MusicList({
 								className={`${
 									track.liked === true
 										? 'hover:bg-green-500 bg-green-500 text-white'
+										: track.liked === false
+										? 'hover:bg-red-500 bg-red-500 text-white'
 										: 'bg-gray-100'
 								} items-center`}
 								onClick={() => handleLike(track.id, track.liked === true ? undefined : true)}>
@@ -72,7 +78,11 @@ export default function MusicList({
 								variant='outline'
 								size='sm'
 								className={`${
-									track.liked === false ? 'hover:bg-red-500 bg-red-500 text-white' : 'bg-gray-100'
+									track.liked === false
+										? 'hover:bg-red-500 bg-red-500 text-white'
+										: track.liked === true
+										? 'bg-green-500 text-white'
+										: 'bg-gray-100'
 								} items-center`}
 								onClick={() => handleLike(track.id, track.liked === false ? undefined : false)}>
 								<ThumbsDown />

@@ -19,7 +19,7 @@ export default function Playlist({ playlist, currentPlaylist, setCurrentPlaylist
 		<Card className='w-full h-full flex flex-col shadow-lg'>
 			<CardHeader>
 				<CardTitle className='text-center'>
-					<h3 className='scroll-m-20 text-2xl font-semibold tracking-tight'>Music Playist</h3>
+					<h3 className='scroll-m-20 text-2xl font-semibold tracking-tight'>Music Playlist</h3>
 				</CardTitle>
 			</CardHeader>{' '}
 			<CardContent className='flex flex-col gap-4 w-full'>
