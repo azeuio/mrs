@@ -65,6 +65,9 @@ class AbstractBrowse:
         res = self._browse(self._entity, self._query_params)
         return res
 
+    def execute_json(self):
+        return self.execute()
+
     @staticmethod
     def _browse(
         entity: LINKED_ENTITY_TYPE,
