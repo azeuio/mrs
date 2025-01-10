@@ -65,6 +65,15 @@ export default function MusicPlayer({
 										height={400}
 										className='rounded-lg'
 									/>
+
+									<iframe
+										width='200'
+										height='113'
+										src={track.src.replace('watch?v=', 'embed/')}
+										title={track.title}
+										frameBorder='0'
+										allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
+										allowFullScreen></iframe>
 									<audio controls key={track.src} onEnded={handleTrackEnd} className='mt-4 w-full'>
 										<source src={track.src} type='audio/mpeg' />
 										Your browser does not support the audio element.

@@ -4,21 +4,20 @@ import { TrackInterface } from '@/constant/TrackInterface';
 import Image from 'next/image';
 import { useState } from 'react';
 
-async function getSpotifyAccessToken() {
-	const clientId = '49e2816d35894848ac6f8358bf5bcf54';
-	const clientSecret = '19b37297cc884f8784ff858ad68423ca';
+const YOUTUBE_API_KEY = 'AIzaSyCng6QuzliJp145iQk-dWmPEUf6KyCCGXg';
 
-	const response = await fetch('https://accounts.spotify.com/api/token', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/x-www-form-urlencoded',
-			Authorization: `Basic ${btoa(`${clientId}:${clientSecret}`)}`,
-		},
-		body: 'grant_type=client_credentials',
-	});
-
+async function getYouTubeVideoPreview(query: string) {
+	const response = await fetch(
+		`https://www.googleapis.com/youtube/v3/search?part=snippet&q=${encodeURIComponent(
+			query,
+		)}&type=video&videoCategoryId=10&key=${YOUTUBE_API_KEY}`,
+	);
 	const data = await response.json();
-	return data.access_token;
+
+	if (data.items && data.items.length > 0) {
+		return `https://www.youtube.com/watch?v=${data.items[0].id.videoId}`;
+	}
+	return null;
 }
 
 function Research({
@@ -37,32 +36,33 @@ function Research({
 		setLoading(true);
 
 		try {
-			const accessToken = await getSpotifyAccessToken();
-
 			const response = await fetch(
-				`https://api.spotify.com/v1/search?q=${searchQuery}&type=track`,
-				{
-					headers: {
-						Authorization: `Bearer ${accessToken}`,
-					},
-				},
+				`https://musicbrainz.org/ws/2/recording?query=${encodeURIComponent(searchQuery)}&fmt=json`,
 			);
+
+			if (!response.ok) {
+				throw new Error('Failed to fetch from MusicBrainz API');
+			}
+
 			const data = await response.json();
-			console.log(data);
-			const tracks: TrackInterface[] = data.tracks.items
-				// .filter((track: any) => track.preview_url)
-				.map((track: any) => ({
-					id: track.id,
-					title: track.name,
-					src: track.preview_url,
-					external_urls: track.external_urls.spotify,
-					image: track.album.images[0]?.url || '',
+			const tracks: TrackInterface[] = [];
+
+			for (const recording of data.recordings) {
+				const youtubeUrl = await getYouTubeVideoPreview(recording.title);
+
+				tracks.push({
+					id: recording.id,
+					title: recording.title,
+					src: youtubeUrl,
+					external_urls: `https://musicbrainz.org/recording/${recording.id}`,
+					image: '/placeholder-image.jpg',
 					liked: undefined,
 					listened: false,
 					listening: false,
-				}));
-            console.log(tracks);
-            setPlaylistResearched(tracks);
+				});
+			}
+
+			setPlaylistResearched(tracks);
 			setResults(tracks);
 		} catch (error) {
 			console.error('Error fetching tracks:', error);
@@ -88,23 +88,40 @@ function Research({
 					{loading ? 'Searching...' : 'Search'}
 				</button>
 			</div>
-			{/* <ul className="results-list space-y-2">
-                {results.map((track) => (
-                    <li key={track.id} className="flex items-center space-x-4">
-                        <Image src={track.image} alt={track.title} width={50} height={50} className="rounded" />
-                        <div className="flex-grow">
-                            <p className="font-bold">{track.title}</p>
-                            <audio controls src={track.src} />
-                        </div>
-                        <button
-                            className="bg-green-500 text-white rounded p-1"
-                            onClick={() => addToPlaylist(track)}
-                        >
-                            Add
-                        </button>
-                    </li>
-                ))}
-            </ul> */}
+			{/* <ul className='results-list space-y-2'>
+				{results.map((track) => (
+					<li key={track.id} className='flex items-center space-x-4'>
+						<Image src={track.image} alt={track.title} width={50} height={50} className='rounded' />
+						<div className='flex-grow'>
+							<p className='font-bold'>{track.title}</p>
+							<a
+								href={track.external_urls}
+								target='_blank'
+								rel='noopener noreferrer'
+								className='text-blue-500'>
+								View on MusicBrainz
+							</a>
+							{track.src ? (
+								<iframe
+									width='200'
+									height='113'
+									src={track.src.replace('watch?v=', 'embed/')}
+									title={track.title}
+									frameBorder='0'
+									allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
+									allowFullScreen></iframe>
+							) : (
+								<p>No preview available</p>
+							)}
+						</div>
+						<button
+							className='bg-green-500 text-white rounded p-1'
+							onClick={() => addToPlaylist(track)}>
+							Add
+						</button>
+					</li>
+				))}
+			</ul> */}
 		</div>
 	);
 }
