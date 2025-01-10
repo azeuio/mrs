@@ -1,4 +1,5 @@
 #!/bin/env python3
+import dataclasses
 import requests
 from typing import List, Dict, Any, Literal, overload
 
@@ -216,12 +217,21 @@ def search(
 
 @overload
 def search(
-    entity: ENTITY_TYPING, query: str, limit: int = 10, offset: int = 0
-) -> SearchResults: ...
+    entity: ENTITY_TYPING,
+    query: str,
+    limit: int = 10,
+    offset: int = 0,
+    fmt: str = "json",
+) -> dict: ...
 
 
 def search(
-    entity: ENTITY_TYPING, query: str, limit: int = 10, offset: int = 0
+    entity: ENTITY_TYPING,
+    query: str,
+    limit: int = 10,
+    offset: int = 0,
+    inc: List[str] = [],
+    fmt: str = "object",
 ) -> SearchResults:
     """Search for entities in the MusicBrainz database.
 
@@ -243,13 +253,16 @@ def search(
             f"Invalid entity type: {entity}. Must be one of {_ENTITY_TYPES}"
         )
     print(f"Searching for {entity} with query: {query}")
-    url = f"{ROOT}{entity}?query={query}&limit={limit}&offset={offset}&fmt=json"
+    url = f"{ROOT}{entity}?query={query}&limit={limit}&offset={offset}&{'+'.join(inc) if inc else ''}&fmt=json"
     print(f"URL: {url}")
     if entity == "genre":
         url = f"{ROOT}{entity}/all?limit={limit}&offset={offset}&fmt=json"
     response = requests.get(url)
     response.raise_for_status()
     data = response.json()
+
+    if fmt == "json":
+        return data
 
     if entity == "area":
         return AreaSearchResults(
@@ -391,7 +404,14 @@ def search(
     )
 
 
+@dataclasses.dataclass
 class AbstractSearch:
+    _entity: ENTITY_TYPING = None
+    _query: str = None
+    _limit: int = 10
+    _offset: int = 0
+    _inc: List[str] = dataclasses.field(default_factory=list)
+
     def entity(self, entity: ENTITY_TYPING):
         self._entity = entity
         return self
@@ -404,12 +424,21 @@ class AbstractSearch:
         self._limit = limit
         return self
 
+    def inc(self, *inc: str):
+        self._inc = inc
+        return self
+
     def offset(self, offset: int):
         self._offset = offset
         return self
 
     def execute(self):
         return search(self._entity, self._query, self._limit, self._offset)
+
+    def execute_json(self):
+        return search(
+            self._entity, self._query, self._limit, self._offset, self._inc, fmt="json"
+        )
 
 
 class AreaSearch(AbstractSearch):

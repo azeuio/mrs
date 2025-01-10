@@ -62,6 +62,9 @@ class AbstractLookup:
         assert self._id is not None, "ID must be set"
         return self._lookup(self._entity, self._id, self._inc)
 
+    def execute_json(self):
+        return self.execute()
+
     @staticmethod
     def _lookup(
         entity: ENTITY_TYPING,
@@ -87,6 +90,7 @@ class AbstractLookup:
             )
         print(f"Looking up {entity} with ID: {id}. Include: {inc}")
         url = f"{ROOT}{entity}/{id}?inc={'+'.join(inc) if inc else ''}&fmt=json"
+        print(url)
         response = requests.get(url)
         response.raise_for_status()
         return response.json()
