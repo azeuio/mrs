@@ -21,9 +21,9 @@ async function getSpotifyAccessToken() {
 }
 
 function Research({
-	setPlaylistResearched,
+	setCurrentPlaylist,
 }: {
-	setPlaylistResearched: (tracks: TrackInterface[]) => void;
+	setCurrentPlaylist: (tracks: TrackInterface[]) => void;
 }) {
 	const [searchQuery, setSearchQuery] = useState('');
 	const [loading, setLoading] = useState(false);
@@ -61,7 +61,7 @@ function Research({
 				listened: false,
 				listening: false,
 			}));
-			setPlaylistResearched(tracks);
+			setCurrentPlaylist(tracks);
 		} catch (error: any) {
 			console.error('Error fetching tracks:', error);
 			setSearchError(error.message || 'Error fetching tracks');
@@ -71,8 +71,8 @@ function Research({
 	};
 
 	return (
-		<div className='research-component'>
-			<div className='flex items-center space-x-2 mb-4'>
+		<div className='w-full'>
+			<div className='flex items-center space-x-2'>
 				<input
 					type='text'
 					className='border rounded p-2 flex-grow'

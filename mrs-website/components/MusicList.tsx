@@ -6,22 +6,22 @@ import { TrackInterface } from '@/constant/TrackInterface';
 import { Pause, Play, ThumbsDown, ThumbsUp, Trash } from 'lucide-react';
 
 type MusicListProps = {
-	tracks: TrackInterface[];
-	setTracks: React.Dispatch<React.SetStateAction<TrackInterface[]>>;
+	playlist: TrackInterface[];
+	setCurrentPlaylist: React.Dispatch<React.SetStateAction<TrackInterface[]>>;
 	setCurrentTrack: (track: TrackInterface) => void;
 	playlistIndex: number;
 };
 
 export default function MusicList({
-	tracks,
-	setTracks,
+	playlist,
+	setCurrentPlaylist,
 	setCurrentTrack,
 	playlistIndex,
 }: MusicListProps) {
 	const handleLike = (id: string, value: boolean | undefined) => {
 		console.log('id', id, 'value', value);
 
-		setTracks((prev) =>
+		setCurrentPlaylist((prev) =>
 			prev.map((track) =>
 				track.id === id ? { ...track, liked: value === undefined ? undefined : value } : track,
 			),
@@ -29,17 +29,17 @@ export default function MusicList({
 	};
 
 	const handleRemove = (id: string) => {
-		setTracks((prev: TrackInterface[]) => prev.filter((track) => track.id !== id));
+		setCurrentPlaylist((prev: TrackInterface[]) => prev.filter((track) => track.id !== id));
 	};
 
 	const handlePlay = (track: TrackInterface) => {
-		tracks.forEach((track) => (track.listening = false));
+		playlist.forEach((track) => (track.listening = false));
 		track.listening = true;
 		setCurrentTrack(track);
 	};
 
 	return (
-		<Card className='w-full h-full flex flex-col shadow-lg overflow-scroll'>
+		<Card className='w-full h-full flex flex-col shadow-lg overflow-y-scroll'>
 			<CardHeader>
 				<CardTitle className='text-center'>
 					<h3 className='scroll-m-20 text-2xl font-semibold tracking-tight'>
@@ -48,7 +48,7 @@ export default function MusicList({
 				</CardTitle>
 			</CardHeader>
 			<CardContent className='flex flex-col gap-2 w-full'>
-				{tracks.map((track) => (
+				{playlist.map((track) => (
 					<div key={track.id} className='flex w-full p-1 justify-between items-center'>
 						<div className='flex items-center'>
 							<p className='text-md font-medium mr-2'>{track.title}</p>

@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 			console.error('Title is required');
 			return NextResponse.json({ error: 'Title is required' }, { status: 400 });
 		}
-		console.log('Title:', title);
+		// console.log('Title:', title);
 
 		const params = {
 			part: 'snippet',
@@ -23,8 +23,8 @@ export async function GET(req: NextRequest) {
 			key: process.env.YOUTUBE_API_KEY,
 		};
 
-		console.log('Request URL:', BASE_URL);
-		console.log('Request Params:', params);
+		// console.log('Request URL:', BASE_URL);
+		// console.log('Request Params:', params);
 
 		const searchResponse = await axios.get(BASE_URL, { params });
 
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
 
 		const videoId = searchResults[0].id.videoId;
 		const videoUrl = `https://www.youtube.com/embed/${videoId}`; // Embed URL
-		console.log('Embed Video URL:', videoUrl);
+		// console.log('Embed Video URL:', videoUrl);
 
 		return NextResponse.json({ videoUrl });
 	} catch (error) {

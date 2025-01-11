@@ -6,13 +6,13 @@ import { Button } from './ui/button';
 
 type PlaylistProps = {
 	playlist: TrackInterface[][];
-	currentPlaylist: number;
-	setCurrentPlaylist: React.Dispatch<React.SetStateAction<number>>;
+	currentPlaylist: TrackInterface[];
+	setCurrentPlaylist: React.Dispatch<React.SetStateAction<TrackInterface[]>>;
 };
 
 export default function Playlist({ playlist, currentPlaylist, setCurrentPlaylist }: PlaylistProps) {
 	const selectPlaylist = (index: number) => {
-		setCurrentPlaylist(index);
+		setCurrentPlaylist(playlist[index]);
 	};
 
 	return (
@@ -21,19 +21,19 @@ export default function Playlist({ playlist, currentPlaylist, setCurrentPlaylist
 				<CardTitle className='text-center'>
 					<h3 className='scroll-m-20 text-2xl font-semibold tracking-tight'>Music Playlist</h3>
 				</CardTitle>
-			</CardHeader>{' '}
+			</CardHeader>
 			<CardContent className='flex flex-col gap-4 w-full'>
 				{playlist.map((tracks, index) => (
 					<div
 						key={index}
 						className={`w-full p-4 rounded-md flex items-center justify-between ${
-							currentPlaylist === index ? 'bg-blue-200' : 'bg-gray-100'
+							currentPlaylist === tracks ? 'bg-blue-200' : 'bg-gray-100'
 						}`}>
 						<h4 className='text-lg font-semibold'>Playlist {index + 1}</h4>
 						<Button
-							variant={currentPlaylist === index ? 'default' : 'outline'}
+							variant={currentPlaylist === tracks ? 'default' : 'outline'}
 							onClick={() => selectPlaylist(index)}>
-							{currentPlaylist === index ? 'Selected' : 'Select'}
+							{currentPlaylist === tracks ? 'Selected' : 'Select'}
 						</Button>
 					</div>
 				))}

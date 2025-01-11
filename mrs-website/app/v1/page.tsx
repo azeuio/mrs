@@ -8,88 +8,115 @@ import { useEffect, useState } from 'react';
 import Playlist from '@/components/Playlist';
 import Research from '@/components/Research';
 
-export default function Home() {
-	const [tracks, setTracks] = useState<TrackInterface[]>([
-		{
-			id: '0',
-			title: 'Track 1',
-			src: '/music1.mp4',
-			image: '/music_cover1.png',
-			liked: undefined,
-			listened: false,
-			listening: false,
-			type: 'audio',
-		},
-		{
-			id: '1',
-			title: 'Track 2',
-			src: 'https://open.spotify.com/track/6hKkzk8UlVUj9ioPCyeH1O',
-			image: '/music_cover2.png',
-			liked: undefined,
-			listened: false,
-			listening: false,
-			type: 'audio',
-		},
-		{
-			id: '2',
-			title: 'Track 3',
-			src: '/music3.mp3',
-			image: '/music_cover3.png',
-			liked: undefined,
-			listened: false,
-			listening: false,
-			type: 'audio',
-		},
-	]);
+const tracks2: TrackInterface[] = [
+	{
+		id: '0',
+		title: 'Track 4',
+		src: '/music1.mp4',
+		image: '/music_cover1.png',
+		liked: undefined,
+		listened: false,
+		listening: false,
+		type: 'audio',
+	},
+	{
+		id: '1',
+		title: 'Track 5',
+		src: 'https://open.spotify.com/track/6hKkzk8UlVUj9ioPCyeH1O',
+		image: '/music_cover2.png',
+		liked: undefined,
+		listened: false,
+		listening: false,
+		type: 'audio',
+	},
+	{
+		id: '2',
+		title: 'Track 6',
+		src: '/music3.mp3',
+		image: '/music_cover3.png',
+		liked: undefined,
+		listened: false,
+		listening: false,
+		type: 'audio',
+	},
+];
 
-	const [playlist, setPlaylist] = useState<TrackInterface[][]>([tracks, tracks]);
-	const [currentTrack, setCurrentTrack] = useState<TrackInterface | null>(null);
-	const [currentPlaylist, setCurrentPlaylist] = useState<number>(0);
+const tracks1: TrackInterface[] = [
+	{
+		id: '0',
+		title: 'Track 1',
+		src: '/music1.mp4',
+		image: '/music_cover1.png',
+		liked: undefined,
+		listened: false,
+		listening: false,
+		type: 'audio',
+	},
+	{
+		id: '1',
+		title: 'Track 2',
+		src: 'https://open.spotify.com/track/6hKkzk8UlVUj9ioPCyeH1O',
+		image: '/music_cover2.png',
+		liked: undefined,
+		listened: false,
+		listening: false,
+		type: 'audio',
+	},
+	{
+		id: '2',
+		title: 'Track 3',
+		src: '/music3.mp3',
+		image: '/music_cover3.png',
+		liked: undefined,
+		listened: false,
+		listening: false,
+		type: 'audio',
+	},
+];
+
+export default function Home() {
+	const [playlist, setPlaylist] = useState<TrackInterface[][]>([tracks1, tracks2]);
+	const [currentPlaylist, setCurrentPlaylist] = useState<TrackInterface[]>(tracks1);
+	const [currentTrack, setCurrentTrack] = useState<TrackInterface>(currentPlaylist[0]);
 	const [trackIndex, setTrackIndex] = useState<number>(0);
 
-	const [playlistResearched, setPlaylistResearched] = useState<TrackInterface[]>([]);
-
-	useEffect(() => {
-		console.log(playlistResearched);
-	}, [playlistResearched]);
-
 	return (
-		<div className='h-screen w-4/5 m-auto flex flex-row justify-around items-center'>
-			<div className='w-96 h-[800px] p-2'>
-				<Playlist
-					playlist={playlist}
-					currentPlaylist={currentPlaylist}
-					setCurrentPlaylist={setCurrentPlaylist}
-				/>
+		<div className='h-screen w-screen p-2 gap-2 flex flex-col'>
+			<div className='grid grid-cols-5'>
+				<div className='col-span-1'></div>
+				<div className='flex col-span-3 justify-center items-center'>
+					<div className='w-1/2'>
+						<Research setCurrentPlaylist={setCurrentPlaylist} />
+					</div>
+				</div>
+				<div className='col-span-1'></div>
 			</div>
-			<div className='w-[650px] h-[700px] max-h-[700px] p-2'>
-				<Research setPlaylistResearched={setPlaylistResearched} />
-				{playlistResearched.length > 0 ? (
+			<div className='h-full w-full gap-2 grid grid-cols-5'>
+				<div className='col-span-1'>
+					<Playlist
+						playlist={playlist}
+						currentPlaylist={currentPlaylist}
+						setCurrentPlaylist={setCurrentPlaylist}
+					/>
+				</div>
+				<div className='col-span-3'>
 					<MusicList
 						playlistIndex={-1}
-						tracks={playlistResearched}
-						setTracks={setPlaylistResearched}
+						setCurrentPlaylist={setCurrentPlaylist}
+						playlist={currentPlaylist}
 						setCurrentTrack={setCurrentTrack}
 					/>
-				) : (
-					<MusicList
-						playlistIndex={currentPlaylist}
-						tracks={playlist[currentPlaylist]}
-						setTracks={setTracks}
-						setCurrentTrack={setCurrentTrack}
+				</div>
+				<div className='col-span-1'>
+					<MusicPlayer
+						trackIndex={trackIndex}
+						playlist={currentPlaylist}
+						setTrackIndex={setTrackIndex}
+						track={currentTrack}
+						setTrack={setCurrentTrack}
 					/>
-				)}
-			</div>
-			<div className='w-96 h-[800px] p-2'>
-				<MusicPlayer
-					trackIndex={trackIndex}
-					playlist={playlist[currentPlaylist]}
-					setTrackIndex={setTrackIndex}
-					track={currentTrack}
-					setTrack={setCurrentTrack}
-				/>
+				</div>
 			</div>
 		</div>
 	);
 }
-//https://open.spotify.com/track/6hKkzk8UlVUj9ioPCyeH1O
