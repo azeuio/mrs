@@ -12,8 +12,9 @@ from mongoengine import (
 from datetime import datetime, timezone
 from flask_cors import CORS
 
+
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+CORS(app)
 
 mongo_uri = "mongodb+srv://lucas:lucasmrs@cluster0.mwrx5.mongodb.net/flaskdb?retryWrites=true&w=majority"
 

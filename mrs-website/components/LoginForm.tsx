@@ -41,7 +41,6 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
 				console.log('Login successful:', data);
         router.push('/v1');
 			} else {
-				// Handle login error
 				console.log('Login failed:', data.message);
 			}
 		} catch (error) {

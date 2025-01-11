@@ -1,13 +1,13 @@
 /** @format */
 
-import { TrackInterface } from '@/constant/TrackInterface';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
+import PlaylistInterface from '@/constant/PlaylistInterface';
 
 type PlaylistProps = {
-	playlist: TrackInterface[][];
-	currentPlaylist: TrackInterface[];
-	setCurrentPlaylist: React.Dispatch<React.SetStateAction<TrackInterface[]>>;
+	playlist: PlaylistInterface[];
+	currentPlaylist: PlaylistInterface | undefined;
+	setCurrentPlaylist: React.Dispatch<React.SetStateAction<PlaylistInterface | undefined>>;
 };
 
 export default function Playlist({ playlist, currentPlaylist, setCurrentPlaylist }: PlaylistProps) {
@@ -19,21 +19,21 @@ export default function Playlist({ playlist, currentPlaylist, setCurrentPlaylist
 		<Card className='w-full h-full flex flex-col shadow-lg'>
 			<CardHeader>
 				<CardTitle className='text-center'>
-					<h3 className='scroll-m-20 text-2xl font-semibold tracking-tight'>Music Playlist</h3>
+					<h3 className='scroll-m-20 text-2xl font-semibold tracking-tight'>Playlist</h3>
 				</CardTitle>
 			</CardHeader>
 			<CardContent className='flex flex-col gap-4 w-full'>
-				{playlist.map((tracks, index) => (
+				{playlist?.map((tracks, index) => (
 					<div
 						key={index}
 						className={`w-full p-4 rounded-md flex items-center justify-between ${
-							currentPlaylist === tracks ? 'bg-blue-200' : 'bg-gray-100'
+							currentPlaylist?.name === tracks.name ? 'bg-blue-200' : 'bg-gray-100'
 						}`}>
-						<h4 className='text-lg font-semibold'>Playlist {index + 1}</h4>
+						<h4 className='text-lg font-semibold'>{tracks.name}</h4>
 						<Button
-							variant={currentPlaylist === tracks ? 'default' : 'outline'}
+							variant={currentPlaylist?.name === tracks.name ? 'default' : 'outline'}
 							onClick={() => selectPlaylist(index)}>
-							{currentPlaylist === tracks ? 'Selected' : 'Select'}
+							{currentPlaylist?.name === tracks.name ? 'Selected' : 'Select'}
 						</Button>
 					</div>
 				))}

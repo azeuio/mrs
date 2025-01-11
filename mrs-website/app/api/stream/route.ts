@@ -34,7 +34,8 @@ export async function GET(req: NextRequest) {
 		}
 
 		const videoId = searchResults[0].id.videoId;
-		const videoUrl = `https://www.youtube.com/embed/${videoId}`; // Embed URL
+		// const videoUrl = `https://www.youtube.com/embed/${videoId}`;
+		const videoUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
 		// console.log('Embed Video URL:', videoUrl);
 
 		return NextResponse.json({ videoUrl });

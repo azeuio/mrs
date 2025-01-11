@@ -7,78 +7,70 @@ import MusicPlayer from '@/components/MusicPlayer';
 import { useEffect, useState } from 'react';
 import Playlist from '@/components/Playlist';
 import Research from '@/components/Research';
-
-const tracks2: TrackInterface[] = [
-	{
-		id: '0',
-		title: 'Track 4',
-		src: '/music1.mp4',
-		image: '/music_cover1.png',
-		liked: undefined,
-		listened: false,
-		listening: false,
-		type: 'audio',
-	},
-	{
-		id: '1',
-		title: 'Track 5',
-		src: 'https://open.spotify.com/track/6hKkzk8UlVUj9ioPCyeH1O',
-		image: '/music_cover2.png',
-		liked: undefined,
-		listened: false,
-		listening: false,
-		type: 'audio',
-	},
-	{
-		id: '2',
-		title: 'Track 6',
-		src: '/music3.mp3',
-		image: '/music_cover3.png',
-		liked: undefined,
-		listened: false,
-		listening: false,
-		type: 'audio',
-	},
-];
-
-const tracks1: TrackInterface[] = [
-	{
-		id: '0',
-		title: 'Track 1',
-		src: '/music1.mp4',
-		image: '/music_cover1.png',
-		liked: undefined,
-		listened: false,
-		listening: false,
-		type: 'audio',
-	},
-	{
-		id: '1',
-		title: 'Track 2',
-		src: 'https://open.spotify.com/track/6hKkzk8UlVUj9ioPCyeH1O',
-		image: '/music_cover2.png',
-		liked: undefined,
-		listened: false,
-		listening: false,
-		type: 'audio',
-	},
-	{
-		id: '2',
-		title: 'Track 3',
-		src: '/music3.mp3',
-		image: '/music_cover3.png',
-		liked: undefined,
-		listened: false,
-		listening: false,
-		type: 'audio',
-	},
-];
+import PlaylistInterface from '@/constant/PlaylistInterface';
+import axios from 'axios';
 
 export default function Home() {
-	const [playlist, setPlaylist] = useState<TrackInterface[][]>([tracks1, tracks2]);
-	const [currentPlaylist, setCurrentPlaylist] = useState<TrackInterface[]>(tracks1);
-	const [currentTrack, setCurrentTrack] = useState<TrackInterface>(currentPlaylist[0]);
+	const [playlist, setPlaylist] = useState<PlaylistInterface[]>([]);
+	const [currentPlaylist, setCurrentPlaylist] = useState<PlaylistInterface>();
 	const [trackIndex, setTrackIndex] = useState<number>(0);
+	const [currentTrack, setCurrentTrack] = useState<TrackInterface | undefined>(
+		currentPlaylist?.tracks ? currentPlaylist.tracks[0] : undefined,
+	);
+
+	useEffect(() => {
+		const fetchPlaylist = async () => {
+			try {
+				const response = await axios.get('http://127.0.0.1:5000/least_played', {
+					headers: {
+						'Content-Type': 'application/json',
+						'Referrer-Policy': 'no-referrer',
+					},
+				});
+				const data = response.data.least_played_songs;
+				console.log(data);
+				const formattedPlaylist = {
+					name: 'Least Played Songs',
+					tracks: [
+						{
+							id: '1',
+							title: 'Title',
+							artist: 'artist',
+							album: 'album',
+							release_date: 'release_date',
+							src: '',
+							image: '/disc.webp',
+							liked: undefined,
+							listened: false,
+							listening: false,
+						},
+					],
+				};
+
+				// const formattedPlaylist = {
+				// 	name: 'Least Played Songs',
+				// 	tracks: data.map((song: any) => ({
+				// 		id: song.title,
+				// 		title: song.title,
+				// 		artist: song.artist,
+				// 		album: song.album,
+				// 		release_date: song.release_date,
+				// 		image: '/disc.webp',
+				// 		listened: false,
+				// 		listening: false,
+				// 		liked: undefined,
+				// 	})),
+				// };
+
+				setPlaylist([formattedPlaylist]);
+				setCurrentPlaylist(formattedPlaylist);
+			} catch (error) {
+				console.error('Erreur lors de la récupération des playlists :', error);
+			}
+		};
+
+		fetchPlaylist();
+	}, []);
 
 	return (
 		<div className='h-screen w-screen p-2 gap-2 flex flex-col'>
@@ -101,7 +93,6 @@ export default function Home() {
 				</div>
 				<div className='col-span-3'>
 					<MusicList
-						playlistIndex={-1}
 						setCurrentPlaylist={setCurrentPlaylist}
 						playlist={currentPlaylist}
 						setCurrentTrack={setCurrentTrack}
