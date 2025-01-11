@@ -76,5 +76,27 @@ def least_played_songs():
 
     return jsonify({"least_played_songs": least_played}), 200
 
+@app.route('/most_played', methods=['GET'])
+def most_played_songs():
+    aggregation = UserSongPlay.objects.aggregate([
+        {"$group": {"_id": "$song", "total_plays": {"$sum": "$play_count"}}},
+        {"$sort": {"total_plays": -1}},
+        {"$limit": 10},
+    ])
+    
+    most_played = []
+    for entry in aggregation:
+        song = Song.objects(id=entry["_id"]).first()
+        if song:
+            most_played.append({
+                "title": song.title,
+                "artist": song.artist,
+                "album": song.album,
+                "release_date": song.release_date,
+                "total_plays": entry["total_plays"]
+            })
+
+    return jsonify({"most_played_songs": most_played}), 200
+
 if __name__ == '__main__':
     app.run(debug=True)
