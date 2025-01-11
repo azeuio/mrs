@@ -4,7 +4,7 @@
 import MusicList from '@/components/MusicList';
 import { TrackInterface } from '../../constant/TrackInterface';
 import MusicPlayer from '@/components/MusicPlayer';
-import { use, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Playlist from '@/components/Playlist';
 import Research from '@/components/Research';
 
@@ -18,15 +18,17 @@ export default function Home() {
 			liked: undefined,
 			listened: false,
 			listening: false,
+			type: 'audio',
 		},
 		{
 			id: '1',
 			title: 'Track 2',
-			src: '/music2.mp3',
+			src: 'https://open.spotify.com/track/6hKkzk8UlVUj9ioPCyeH1O',
 			image: '/music_cover2.png',
 			liked: undefined,
 			listened: false,
 			listening: false,
+			type: 'audio',
 		},
 		{
 			id: '2',
@@ -36,6 +38,7 @@ export default function Home() {
 			liked: undefined,
 			listened: false,
 			listening: false,
+			type: 'audio',
 		},
 	]);
 
@@ -60,14 +63,7 @@ export default function Home() {
 				/>
 			</div>
 			<div className='w-[650px] h-[700px] max-h-[700px] p-2'>
-				<Research
-					setPlaylistResearched={setPlaylistResearched}
-					addToPlaylist={(track: TrackInterface) => {
-						const updatedPlaylist = [...playlist];
-						updatedPlaylist[currentPlaylist] = [...updatedPlaylist[currentPlaylist], track];
-						setPlaylist(updatedPlaylist);
-					}}
-				/>
+				<Research setPlaylistResearched={setPlaylistResearched} />
 				{playlistResearched.length > 0 ? (
 					<MusicList
 						playlistIndex={-1}
@@ -96,3 +92,4 @@ export default function Home() {
 		</div>
 	);
 }
+//https://open.spotify.com/track/6hKkzk8UlVUj9ioPCyeH1O

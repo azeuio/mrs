@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrackInterface } from '../constant/TrackInterface';
 import { ThumbsDown, ThumbsUp } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
 export default function MusicPlayer({
 	track,
@@ -21,6 +23,23 @@ export default function MusicPlayer({
 	setTrackIndex: (index: number) => void;
 	setTrack: (updatedTrack: TrackInterface) => void;
 }) {
+	const [videoUrl, setVideoUrl] = useState<string | null>(null);
+
+	useEffect(() => {
+		if (track && track.title) {
+			axios
+				.get(`/api/stream?title=${encodeURIComponent(track.title)}`)
+				.then((response) => {
+					console.log('Video URL:', response.data.videoUrl);
+					setVideoUrl(`${response.data.videoUrl}`);
+				})
+				.catch((error) => {
+					console.error('Error fetching video URL:', error);
+					setVideoUrl(null);
+				});
+		}
+	}, [track]);
+
 	if (!track) {
 		return (
 			<div className='w-full h-full flex flex-col justify-center'>
@@ -33,14 +52,22 @@ export default function MusicPlayer({
 
 	const handleLike = () => setTrack({ ...track, liked: true });
 	const handleDislike = () => setTrack({ ...track, liked: false, listening: false });
+
 	const handleTrackEnd = () => {
 		if (trackIndex !== undefined) {
 			setTrack({ ...track, listened: true, listening: false });
-			const nextIndex = trackIndex + 1 < playlist.length ? trackIndex + 1 : 0;
+			const nextIndex = (trackIndex + 1) % playlist.length;
 			setTrackIndex(nextIndex);
 			setTrack(playlist[nextIndex]);
 		}
 	};
+
+	const feedbackMessage =
+		track.liked === true
+			? 'You liked this!'
+			: track.liked === false
+			? 'You disliked this.'
+			: 'No feedback yet.';
 
 	return (
 		<div className='w-full h-full flex flex-col justify-center'>
@@ -48,58 +75,32 @@ export default function MusicPlayer({
 				<CardHeader>
 					<CardTitle>
 						<h3 className='scroll-m-20 text-2xl font-semibold tracking-tight'>{track.title}</h3>
+						<Image
+							src={track.image || '/fallback-image.jpg'}
+							alt='Music Cover'
+							width={400}
+							height={400}
+							className='rounded-lg'
+						/>
 					</CardTitle>
-					<div className='mt-4'>
-						{track?.src ? (
-							track.src.endsWith('.mp4') ? (
-								<video controls key={track.src} onEnded={handleTrackEnd} className='rounded-lg'>
-									<source src={track.src} type='video/mp4' />
-									Your browser does not support the video element.
-								</video>
-							) : (
-								<>
-									<Image
-										src={track.image || '/fallback-image.jpg'}
-										alt='Music Cover'
-										width={400}
-										height={400}
-										className='rounded-lg'
-									/>
-									<audio controls key={track.src} onEnded={handleTrackEnd} className='mt-4 w-full'>
-										<source src={track.src} type='audio/mpeg' />
-										Your browser does not support the audio element.
-									</audio>
-								</>
-							)
-						) : (
-							<div>
-								<Image
-									src={track.image || '/fallback-image.jpg'}
-									alt='Music Cover'
-									width={400}
-									height={400}
-									className='rounded-lg'
-								/>
-								<p className='mt-4 text-center'>
-									Preview not available.{' '}
-									<a
-										href={track?.external_urls?.spotify}
-										target='_blank'
-										rel='noopener noreferrer'
-										className='text-blue-500'>
-										Listen on Spotify
-									</a>
-								</p>
-							</div>
-						)}
-					</div>
 				</CardHeader>
+				<CardContent>
+					<div className='mt-4'>
+						<iframe
+							width='100%'
+							height='400'
+							src={videoUrl || ''}
+							title={track.title}
+							frameBorder='0'
+							allow='accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture'
+							allowFullScreen
+							onEnded={handleTrackEnd}></iframe>
+					</div>
+				</CardContent>
+
 				<CardFooter className='flex justify-between items-center player-footer'>
-					<p className='mt-4 text-center'>
-						{track.liked === true && 'You liked this!'}
-						{track.liked === false && 'You disliked this.'}
-						{track.liked === undefined && 'No feedback yet.'}
-					</p>
+					<p className='mt-4 text-center'>{feedbackMessage}</p>
+
 					<div className='flex justify-center space-x-4 mt-6'>
 						<Button
 							variant='default'

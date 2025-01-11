@@ -1,7 +1,6 @@
 /** @format */
 
 import { TrackInterface } from '@/constant/TrackInterface';
-import Image from 'next/image';
 import { useState } from 'react';
 
 async function getSpotifyAccessToken() {
@@ -23,49 +22,49 @@ async function getSpotifyAccessToken() {
 
 function Research({
 	setPlaylistResearched,
-	addToPlaylist,
 }: {
 	setPlaylistResearched: (tracks: TrackInterface[]) => void;
-	addToPlaylist: (track: TrackInterface) => void;
 }) {
 	const [searchQuery, setSearchQuery] = useState('');
-	const [results, setResults] = useState<TrackInterface[]>([]);
 	const [loading, setLoading] = useState(false);
+	const [searchError, setSearchError] = useState<string | null>(null);
 
 	const handleSearch = async () => {
 		if (!searchQuery.trim()) return;
 		setLoading(true);
+		setSearchError(null);
 
 		try {
 			const accessToken = await getSpotifyAccessToken();
 
 			const response = await fetch(
-				`https://api.spotify.com/v1/search?q=${searchQuery}&type=track`,
+				`https://api.spotify.com/v1/search?q=${searchQuery}&type=track&market=FR`,
 				{
 					headers: {
 						Authorization: `Bearer ${accessToken}`,
 					},
 				},
 			);
+
+			if (!response.ok) {
+				throw new Error('Failed to fetch tracks from Spotify');
+			}
+
 			const data = await response.json();
-			console.log(data);
-			const tracks: TrackInterface[] = data.tracks.items
-				// .filter((track: any) => track.preview_url)
-				.map((track: any) => ({
-					id: track.id,
-					title: track.name,
-					src: track.preview_url,
-					external_urls: track.external_urls.spotify,
-					image: track.album.images[0]?.url || '',
-					liked: undefined,
-					listened: false,
-					listening: false,
-				}));
-            console.log(tracks);
-            setPlaylistResearched(tracks);
-			setResults(tracks);
-		} catch (error) {
+			const tracks: TrackInterface[] = data.tracks.items.map((track: any) => ({
+				id: track.id,
+				title: track.name,
+				src: track.preview_url,
+				external_urls: track.external_urls.spotify,
+				image: track.album.images[0]?.url || '',
+				liked: undefined,
+				listened: false,
+				listening: false,
+			}));
+			setPlaylistResearched(tracks);
+		} catch (error: any) {
 			console.error('Error fetching tracks:', error);
+			setSearchError(error.message || 'Error fetching tracks');
 		} finally {
 			setLoading(false);
 		}
@@ -88,23 +87,7 @@ function Research({
 					{loading ? 'Searching...' : 'Search'}
 				</button>
 			</div>
-			{/* <ul className="results-list space-y-2">
-                {results.map((track) => (
-                    <li key={track.id} className="flex items-center space-x-4">
-                        <Image src={track.image} alt={track.title} width={50} height={50} className="rounded" />
-                        <div className="flex-grow">
-                            <p className="font-bold">{track.title}</p>
-                            <audio controls src={track.src} />
-                        </div>
-                        <button
-                            className="bg-green-500 text-white rounded p-1"
-                            onClick={() => addToPlaylist(track)}
-                        >
-                            Add
-                        </button>
-                    </li>
-                ))}
-            </ul> */}
+			{searchError && <div className='text-red-500 mt-4'>{searchError}</div>}
 		</div>
 	);
 }
