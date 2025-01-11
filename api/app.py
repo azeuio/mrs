@@ -19,9 +19,8 @@ class UserSongPlay(Document):
     username = StringField(required=True)
     song = ReferenceField(Song, required=True)
     play_count = IntField(default=1)
-    last_played = DateTimeField(default=datetime.now(timezone.utc))  # Fix with timezone-aware datetime
+    last_played = DateTimeField(default=datetime.now(timezone.utc))
 
-# Routes
 @app.route('/')
 def home():
     return jsonify({"message": "Welcome to the Flask MongoDB API for song plays!"})
