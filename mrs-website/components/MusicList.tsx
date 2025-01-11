@@ -149,7 +149,7 @@ export default function MusicList({
 			<CardHeader>
 				<CardTitle className='text-center'>
 					<h3 className='scroll-m-20 text-2xl font-semibold tracking-tight'>
-						{playlist?.name || title || 'No Playlist Selected'}
+						{playlist?.name || title }
 					</h3>
 				</CardTitle>
 			</CardHeader>

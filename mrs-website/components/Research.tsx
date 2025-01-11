@@ -53,7 +53,8 @@ function Research({
 
 			const data = await response.json();
 			const playlist: PlaylistInterface = {
-				name: `Search Results ${searchQuery}`,
+				// name: `Search results for ${searchQuery}`,
+				name: ' ',
 				tracks: data.tracks?.items.map((track: any) => ({
 					id: track.id,
 					title: track.name,
