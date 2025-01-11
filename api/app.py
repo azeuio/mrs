@@ -1,13 +1,5 @@
 from flask import Flask, request, jsonify
-import api
-from mongoengine import (
-    Document,
-    StringField,
-    DateTimeField,
-    ReferenceField,
-    IntField,
-    connect,
-)
+from mongoengine import Document, StringField, DateTimeField, ReferenceField, IntField, connect
 from datetime import datetime, timezone
 import os
 
@@ -17,30 +9,23 @@ mongo_uri = "mongodb+srv://lucas:lucasmrs@cluster0.mwrx5.mongodb.net/flaskdb?ret
 
 connect("flaskdb", host=mongo_uri)
 
-
 class Song(Document):
     title = StringField(required=True, unique=True)
     artist = StringField()
     album = StringField()
     release_date = DateTimeField()
 
-
 class UserSongPlay(Document):
     username = StringField(required=True)
     song = ReferenceField(Song, required=True)
     play_count = IntField(default=1)
-    last_played = DateTimeField(
-        default=datetime.now(timezone.utc)
-    )  # Fix with timezone-aware datetime
-
     last_played = DateTimeField(default=datetime.now(timezone.utc))
 
 @app.route('/')
 def home():
     return jsonify({"message": "Welcome to the Flask MongoDB API for song plays!"})
 
-
-@app.route("/play", methods=["POST"])
+@app.route('/play', methods=['POST'])
 def add_or_update_play():
     data = request.get_json()
 
@@ -57,79 +42,39 @@ def add_or_update_play():
         user_song_play = UserSongPlay.objects(username=username, song=song).first()
 
         if user_song_play:
-            user_song_play.update(
-                inc__play_count=1, set__last_played=datetime.now(timezone.utc)
-            )
+            user_song_play.update(inc__play_count=1, set__last_played=datetime.now(timezone.utc))
             return jsonify({"message": "Song play count updated!"}), 200
         else:
-            UserSongPlay(
-                username=username,
-                song=song,
-                play_count=1,
-                last_played=datetime.now(timezone.utc),
-            ).save()
+            UserSongPlay(username=username, song=song, play_count=1, last_played=datetime.now(timezone.utc)).save()
             return jsonify({"message": "Song play recorded for the first time!"}), 201
     else:
-        song = Song(
-            title=song_title,
-            artist=data.get("artist", ""),
-            album=data.get("album", ""),
-            release_date=datetime.now(timezone.utc),
-        )
+        song = Song(title=song_title, artist=data.get("artist", ""), album=data.get("album", ""), release_date=datetime.now(timezone.utc))
         song.save()
 
-        UserSongPlay(
-            username=username,
-            song=song,
-            play_count=1,
-            last_played=datetime.now(timezone.utc),
-        ).save()
+        UserSongPlay(username=username, song=song, play_count=1, last_played=datetime.now(timezone.utc)).save()
         return jsonify({"message": "New song created and play recorded!"}), 201
 
-
-@app.route("/least_played", methods=["GET"])
+@app.route('/least_played', methods=['GET'])
 def least_played_songs():
-    aggregation = UserSongPlay.objects.aggregate(
-        [
-            {"$group": {"_id": "$song", "total_plays": {"$sum": "$play_count"}}},
-            {"$sort": {"total_plays": 1}},
-            {"$limit": 10},
-        ]
-    )
-
+    aggregation = UserSongPlay.objects.aggregate([
+        {"$group": {"_id": "$song", "total_plays": {"$sum": "$play_count"}}},
+        {"$sort": {"total_plays": 1}},
+        {"$limit": 10},
+    ])
+    
     least_played = []
     for entry in aggregation:
         song = Song.objects(id=entry["_id"]).first()
         if song:
-            least_played.append(
-                {
-                    "title": song.title,
-                    "artist": song.artist,
-                    "album": song.album,
-                    "release_date": song.release_date,
-                    "total_plays": entry["total_plays"],
-                }
-            )
+            least_played.append({
+                "title": song.title,
+                "artist": song.artist,
+                "album": song.album,
+                "release_date": song.release_date,
+                "total_plays": entry["total_plays"]
+            })
 
     return jsonify({"least_played_songs": least_played}), 200
 
-
-@app.get("/api/search")
-def search():
-    query = request.args.get("q")
-    limit = request.args.get("limit", 10)
-    offset = request.args.get("offset", 0)
-    res = (
-        api.Search()
-        .entity("artist")
-        .query(query)
-        .limit(limit)
-        .offset(offset)
-        .execute_json()
-    )
-    # return json.dumps(list(map(lambda x: x.name, res.artists)))
-    return jsonify(res)
-
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     app.run(debug=True)
