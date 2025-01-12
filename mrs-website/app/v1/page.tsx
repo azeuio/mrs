@@ -38,10 +38,12 @@ export default function Home() {
 					),
 				);
 
-				const artistSongsMap = artistResponses.map((response, index) => ({
-					artist: least_played_songs[index].artist,
-					songs: response.data,
-				})).reverse();
+				const artistSongsMap = artistResponses
+					.map((response, index) => ({
+						artist: least_played_songs[index].artist,
+						songs: response.data,
+					}))
+					.reverse();
 
 				const formattedPlaylist: PlaylistInterface[] = [
 					{

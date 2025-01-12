@@ -5,13 +5,9 @@ import PlaylistInterface from '@/constant/PlaylistInterface';
 import { TrackInterface } from '@/constant/TrackInterface';
 import {
 	AudioLines,
-	BadgePlus,
-	Check,
 	CheckIcon,
-	CircleCheck,
 	CirclePlus,
 	TimerIcon,
-	Trash,
 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import Image from 'next/image';
@@ -124,7 +120,7 @@ function TrackDisplayed({ playlist, setCurrentPlaylist, setCurrentTrack }: Track
 									size='sm'
 									onClick={(e) => {
 										e.stopPropagation();
-										handleRemove(track.id);
+										if (track.id) handleRemove(track.id);
 									}}>
 									{!playlist.researched ? <CheckIcon /> : <CirclePlus />}
 								</Button>

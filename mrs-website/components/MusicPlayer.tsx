@@ -73,12 +73,12 @@ export default function MusicPlayer({
 	const handleDislike = () => setTrack({ ...track, liked: false, listening: false });
 
 	const handleTrackEnd = () => {
-		if (trackIndex !== undefined) {
-			setTrack({ ...track, listened: true, listening: false });
-			const nextIndex = (trackIndex + 1) % playlist?.length;
-			setTrackIndex(nextIndex);
-			setTrack(playlist[nextIndex]);
-		}
+		// if (trackIndex !== undefined) {
+		// 	setTrack({ ...track, listened: true, listening: false });
+		// 	const nextIndex = (trackIndex + 1) % playlist?.tracks?.length;
+		// 	setTrackIndex(nextIndex);
+		// 	setTrack(playlist?.tracks[nextIndex]);
+		// }
 	};
 
 	const feedbackMessage =
