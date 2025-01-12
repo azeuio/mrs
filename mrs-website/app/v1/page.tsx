@@ -21,31 +21,36 @@ export default function Home() {
 	useEffect(() => {
 		const fetchPlaylist = async () => {
 			try {
-				const response = await axios.get('http://127.0.0.1:5000/least_played', {
-					headers: {
-						'Content-Type': 'application/json',
-						'Referrer-Policy': 'no-referrer',
+				// const response = await axios.get('http://127.0.0.1:5000/least_played', {
+				// 	headers: {
+				// 		'Content-Type': 'application/json',
+				// 		'Referrer-Policy': 'no-referrer',
+				// 	},
+				// });
+				// const data = response.data.least_played_songs;
+				// console.log(data);
+				const tmpTracks: TrackInterface[] = [];
+				for (let i = 0; i < 100; i++) {
+					tmpTracks.push({
+						id: i.toString(),
+						title: 'Title',
+						artist: 'artist',
+						album: 'album',
+						release_date: 'release_date',
+						src: '',
+						image: '/disc.webp',
+						liked: undefined,
+						listened: false,
+						listening: false,
+					});
+				}
+				const formattedPlaylist = [
+					{
+						name: 'Least Played Songs',
+						researched: false,
+						tracks: tmpTracks,
 					},
-				});
-				const data = response.data.least_played_songs;
-				console.log(data);
-				const formattedPlaylist = {
-					name: 'Least Played Songs',
-					tracks: [
-						{
-							id: '1',
-							title: 'Title',
-							artist: 'artist',
-							album: 'album',
-							release_date: 'release_date',
-							src: '',
-							image: '/disc.webp',
-							liked: undefined,
-							listened: false,
-							listening: false,
-						},
-					],
-				};
+				];
 
 				// const formattedPlaylist = {
 				// 	name: 'Least Played Songs',
@@ -62,8 +67,8 @@ export default function Home() {
 				// 	})),
 				// };
 
-				setPlaylist([formattedPlaylist]);
-				setCurrentPlaylist(formattedPlaylist);
+				setPlaylist(formattedPlaylist);
+				setCurrentPlaylist(formattedPlaylist[0]);
 			} catch (error) {
 				console.error('Erreur lors de la récupération des playlists :', error);
 			}
@@ -84,21 +89,21 @@ export default function Home() {
 				<div className='col-span-1'></div>
 			</div>
 			<div className='h-full w-full gap-2 grid grid-cols-5'>
-				<div className='col-span-1'>
+				<div className='h-[95vh] col-span-1'>
 					<Playlist
 						playlist={playlist}
 						currentPlaylist={currentPlaylist}
 						setCurrentPlaylist={setCurrentPlaylist}
 					/>
 				</div>
-				<div className='col-span-3'>
+				<div className='h-[95vh] col-span-3'>
 					<MusicList
 						setCurrentPlaylist={setCurrentPlaylist}
 						playlist={currentPlaylist}
 						setCurrentTrack={setCurrentTrack}
 					/>
 				</div>
-				<div className='col-span-1'>
+				<div className='h-[95vh] col-span-1'>
 					<MusicPlayer
 						trackIndex={trackIndex}
 						playlist={currentPlaylist}

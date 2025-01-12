@@ -4,6 +4,7 @@ export interface TrackInterface {
   artist: string;
   album: string;
   release_date?: string;
+  duration?: number;
   src: string;
   image: string;
   liked?: boolean | undefined;

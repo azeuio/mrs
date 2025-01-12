@@ -1,8 +1,10 @@
 /** @format */
-
+'use client';
 import PlaylistInterface from '@/constant/PlaylistInterface';
 import { TrackInterface } from '@/constant/TrackInterface';
 import { SetStateAction, useState } from 'react';
+import { Input } from './ui/input';
+import { Button } from './ui/button';
 
 async function getSpotifyAccessToken() {
 	const clientId = '49e2816d35894848ac6f8358bf5bcf54';
@@ -50,19 +52,20 @@ function Research({
 			if (!response.ok) {
 				throw new Error('Failed to fetch tracks from Spotify');
 			}
-
 			const data = await response.json();
+			console.log('response', data);
 			const playlist: PlaylistInterface = {
-				// name: `Search results for ${searchQuery}`,
-				name: ' ',
+				name: `Results for ${searchQuery}`,
+				researched: true,
 				tracks: data.tracks?.items.map((track: any) => ({
 					id: track.id,
 					title: track.name,
 					src: track.preview_url,
-					artist: track.artist,
-					album: track.album,
+					artist: track.artists[0].name,
+					album: track.album.name,
 					external_urls: track.external_urls.spotify,
 					image: track.album.images[0]?.url || '',
+					duration: track.duration_ms,
 					liked: undefined,
 					listened: false,
 					listening: false,
@@ -80,19 +83,19 @@ function Research({
 	return (
 		<div className='w-full'>
 			<div className='flex items-center space-x-2'>
-				<input
+				<Input
 					type='text'
 					className='border rounded p-2 flex-grow'
 					placeholder='Search for an artist or track...'
 					value={searchQuery}
 					onChange={(e) => setSearchQuery(e.target.value)}
 				/>
-				<button
+				<Button
 					className='bg-blue-500 text-white rounded p-2'
 					onClick={handleSearch}
 					disabled={loading}>
 					{loading ? 'Searching...' : 'Search'}
-				</button>
+				</Button>
 			</div>
 			{searchError && <div className='text-red-500 mt-4'>{searchError}</div>}
 		</div>
