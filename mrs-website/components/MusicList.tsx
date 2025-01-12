@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import PlaylistInterface from '@/constant/PlaylistInterface';
 import { TrackInterface } from '@/constant/TrackInterface';
 import {
+	AudioLines,
 	BadgePlus,
 	Check,
 	CheckIcon,
@@ -39,10 +40,10 @@ type TrackProps = {
 };
 
 const formatDuration = (ms: number) => {
-	const totalSeconds = Math.floor(ms / 1000); // Convert to seconds
-	const minutes = Math.floor(totalSeconds / 60); // Extract minutes
-	const seconds = totalSeconds % 60; // Extract remaining seconds
-	return `${minutes}:${seconds.toString().padStart(2, '0')}`; // Format as MM:SS
+	const totalSeconds = Math.floor(ms / 1000);
+	const minutes = Math.floor(totalSeconds / 60);
+	const seconds = totalSeconds % 60;
+	return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 };
 
 function TrackDisplayed({ playlist, setCurrentPlaylist, setCurrentTrack }: TrackProps) {
@@ -91,8 +92,8 @@ function TrackDisplayed({ playlist, setCurrentPlaylist, setCurrentTrack }: Track
 			<TableBody>
 				{playlist?.tracks?.map((track, index) => {
 					return (
-						<TableRow className='group' key={index} onClick={() => handlePlay(track)}>
-							<TableCell className='text-center'>{index + 1}</TableCell>
+						<TableRow className='group hover:cursor-pointer' key={index} onClick={() => handlePlay(track)}>
+							<TableCell className='text-center'>{track.listening ? <AudioLines color='green'/> : index + 1}</TableCell>
 							<TableCell className='flex items-center gap-2'>
 								<Image
 									src={track.image || '/fallback-image.jpg'}
