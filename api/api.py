@@ -404,13 +404,30 @@ def search(
     )
 
 
+class AbstractSearch:
+    pass
+
+
 @dataclasses.dataclass
 class AbstractSearch:
     _entity: ENTITY_TYPING = None
     _query: str = None
     _limit: int = 10
     _offset: int = 0
-    _inc: List[str] = dataclasses.field(default_factory=list)
+    _inc: List[str] = None
+
+    def __init__(self):
+        self._inc = []
+
+    @classmethod
+    def new_from(cls, other: AbstractSearch):
+        c = cls()
+        c._entity = other._entity
+        c._query = other._query
+        c._limit = other._limit
+        c._offset = other._offset
+        c._inc = other._inc
+        return c
 
     def entity(self, entity: ENTITY_TYPING):
         self._entity = entity
@@ -425,7 +442,7 @@ class AbstractSearch:
         return self
 
     def inc(self, *inc: str):
-        self._inc = inc
+        self._inc = list(inc)
         return self
 
     def offset(self, offset: int):
@@ -447,6 +464,82 @@ class AreaSearch(AbstractSearch):
 
 
 class ArtistSearch(AbstractSearch):
+    def alias(self, q: str):
+        self._query = (self._query or "") + f" AND alias={q}"
+        return self
+
+    def primary_alias(self, q: str):
+        self._query = (self._query or "") + f" AND primary_alias={q}"
+        return self
+
+    def area(self, q: str):
+        self._query = (self._query or "") + f" AND area={q}"
+        return self
+
+    def arid(self, q: str):
+        self._query = (self._query or "") + f" AND arid={q}"
+        return self
+
+    def artist(self, q: str):
+        self._query = (self._query or "") + f" AND artist={q}"
+        return self
+
+    def artistaccent(self, q: str):
+        self._query = (self._query or "") + f" AND artistaccent={q}"
+        return self
+
+    def begin(self, q: str):
+        self._query = (self._query or "") + f" AND begin={q}"
+        return self
+
+    def beginarea(self, q: str):
+        self._query = (self._query or "") + f" AND beginarea={q}"
+        return self
+
+    def comment(self, q: str):
+        self._query = (self._query or "") + f" AND comment={q}"
+        return self
+
+    def country(self, q: str):
+        self._query = (self._query or "") + f" AND country={q}"
+        return self
+
+    def end(self, q: str):
+        self._query = (self._query or "") + f" AND end={q}"
+        return self
+
+    def endarea(self, q: str):
+        self._query = (self._query or "") + f" AND endarea={q}"
+        return self
+
+    def ended(self, q: str):
+        self._query = (self._query or "") + f" AND ended={q}"
+        return self
+
+    def gender(self, q: str):
+        self._query = (self._query or "") + f" AND gender={q}"
+        return self
+
+    def ipi(self, q: str):
+        self._query = (self._query or "") + f" AND ipi={q}"
+        return self
+
+    def isni(self, q: str):
+        self._query = (self._query or "") + f" AND isni={q}"
+        return self
+
+    def sortname(self, q: str):
+        self._query = (self._query or "") + f" AND sortname={q}"
+        return self
+
+    def tag(self, q: str):
+        self._query = (self._query or "") + f" AND tag={q}"
+        return self
+
+    def type(self, q: str):
+        self._query = (self._query or "") + f" AND type={q}"
+        return self
+
     def execute(self):
         return search("artist", self._query, self._limit, self._offset)
 
@@ -546,6 +639,32 @@ class Search(AbstractSearch):
     @overload
     def entity(self, entity: Literal["url"]) -> UrlSearch: ...
     def entity(self, entity: ENTITY_TYPING):
+        if entity == "area":
+            return AreaSearch.new_from(self)
+        if entity == "artist":
+            return ArtistSearch.new_from(self)
+        if entity == "event":
+            return EventSearch.new_from(self)
+        if entity == "genre":
+            return GenreSearch.new_from(self)
+        if entity == "instrument":
+            return InstrumentSearch.new_from(self)
+        if entity == "label":
+            return LabelSearch.new_from(self)
+        if entity == "place":
+            return PlaceSearch.new_from(self)
+        if entity == "recording":
+            return RecordingSearch.new_from(self)
+        if entity == "release":
+            return ReleaseSearch.new_from(self)
+        if entity == "release-group":
+            return ReleaseGroupSearch.new_from(self)
+        if entity == "series":
+            return SeriesSearch.new_from(self)
+        if entity == "work":
+            return WorkSearch.new_from(self)
+        if entity == "url":
+            return UrlSearch.new_from(self)
         self._entity = entity
         return self
 

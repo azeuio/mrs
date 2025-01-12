@@ -1,4 +1,6 @@
+from typing import List
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import requests
 import api
 from mongoengine import (
@@ -11,6 +13,8 @@ from mongoengine import (
 )
 from datetime import datetime, timezone
 from flask_cors import CORS
+
+from api.types import Artist, Tag
 
 
 app = Flask(__name__)
@@ -216,5 +220,128 @@ def release_front(id):
     return jsonify(res.json())
 
 
+@app.get("/api/genre/related/<id>")
+def related_genre(id):
+    res = api.Lookup().entity("artist").id(id).inc("genre-rels").execute_json()
+    return jsonify(res)
+
+
+@app.get("/api/artist/<id>/genres")
+def artist_genres(id):
+    res = api.Lookup().entity("artist").id(id).inc("genres").execute_json()
+    tags: List[Tag] = res.get("genres", [])
+
+    return jsonify(
+        {"name": tag["name"], "id": tag["id"]}
+        for tag in sorted(tags, key=lambda x: x["count"], reverse=True)
+    )
+
+
+@app.get("/api/artist/<id>/tags")
+def artist_tags(id):
+    res = api.Lookup().entity("artist").id(id).inc("tags").execute_json()
+    tags: List[Tag] = res.get("tags", [])
+
+    return jsonify(sorted(tags, key=lambda x: x["count"], reverse=True))
+
+
+@app.get("/api/genres/top/artists")
+def top_artists_by_genre():
+    genre = request.args.get("genre")
+    limit = request.args.get("limit", 10)
+    offset = request.args.get("offset", 0)
+    res = (
+        api.Browse()
+        .entity("artist")
+        .genre(genre)
+        .limit(limit)
+        .offset(offset)
+        .execute_json()
+    )
+    return jsonify(res)
+
+
+@app.get("/api/artist/similar")
+def similar_artists_query():
+    q = request.args.get("q")
+    artist = api.Search().entity("artist").query(q).execute()
+    if not artist or len(artist.artists) == 0:
+        return jsonify({"error": "Artist not found!"}), 404
+    return similar_artists(artist.artists[0].id)
+
+
+@app.get("/api/artist/<id>/similar")
+def similar_artists(id):
+    artist = api.Lookup().entity("artist").id(id).inc("tags").execute_json()
+    if not artist:
+        return jsonify({"error": "Artist not found!"}), 404
+    similar: List[Artist] = []
+    if artist["tags"] and len(artist["tags"]) > 0 and artist["country"]:
+        similar.extend(
+            api.Search()
+            .entity("artist")
+            .tag(artist["tags"][0]["name"])
+            .country(artist["country"])
+            .type("artist")
+            .inc("tags")
+            .limit(5)
+            .execute()
+            .artists
+        )
+    res = []
+    for a in similar:
+        res.extend(
+            {
+                "id": None,
+                "title": rel.title,
+                "artist": a.name,
+                "album": None,
+                "release_date": rel.date,
+                "duration": None,
+                "src": None,
+                "image": None,
+                "liked": None,
+                "listened": None,
+                "listening": None,
+            }
+            for rel in api.Browse()
+            .entity("release")
+            .artist(a.id)
+            .limit(3)
+            .execute()
+            .releases
+        )
+    return jsonify(res)
+
+
 if __name__ == "__main__":
+    # stromae = api.Search().entity("artist").query("stromae").execute()
+    # print(stromae)
+    # a = (
+    #     api.Search()
+    #     .entity("artist")
+    #     .tag("dance-pop")
+    #     .inc("tags")
+    #     .country(stromae.artists[0].country)
+    #     .execute()
+    # )
+    # print(list((b.name, b.tags) for b in a.artists))
+    # # res = (
+    # #     api.Lookup()
+    # #     .entity("artist")
+    # #     .id(stromae.artists[0].id)
+    # #     .inc("artist-rels")
+    # #     .execute_json()
+    # # )
+    # # print(res)
+    # # artpop = (
+    # #     api.Lookup()
+    # #     .entity("genre")
+    # #     .id("930ef127-3653-4677-9b95-ecc90c7c1a14")
+    # #     .inc("work-rels")
+    # #     .execute_json()
+    # # )
+    # # print(artpop)
+
+    # pass
     app.run(debug=True)
