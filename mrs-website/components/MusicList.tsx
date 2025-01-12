@@ -20,16 +20,19 @@ type MusicListProps = {
 	setCurrentPlaylist: React.Dispatch<React.SetStateAction<PlaylistInterface | undefined>>;
 	setCurrentTrack: (track: TrackInterface) => void;
 	title?: string;
+	currentTrack: TrackInterface | undefined;
 };
 
 type TrackProps = {
 	playlist: PlaylistInterface | undefined;
 	setCurrentPlaylist: React.Dispatch<React.SetStateAction<PlaylistInterface | undefined>>;
 	setCurrentTrack: (track: TrackInterface) => void;
+	currentTrack: TrackInterface | undefined;
 };
 
-function TrackDisplayed({ playlist, setCurrentPlaylist, setCurrentTrack }: TrackProps) {
-	const handleLike = (id: string, value: boolean | undefined) => {
+function TrackDisplayed({ playlist, setCurrentPlaylist, setCurrentTrack, currentTrack }: TrackProps) {
+	const handleLike = (e: any, id: string, value: boolean | undefined) => {
+		e.stopPropagation();
 		setCurrentPlaylist((prev) => {
 			if (!prev) return prev;
 
@@ -41,7 +44,8 @@ function TrackDisplayed({ playlist, setCurrentPlaylist, setCurrentTrack }: Track
 		});
 	};
 
-	const handleRemove = (id: string) => {
+	const handleRemove = (e: any, id: string) => {
+		e.stopPropagation();
 		setCurrentPlaylist((prev) => {
 			if (!prev) return prev;
 
@@ -52,9 +56,22 @@ function TrackDisplayed({ playlist, setCurrentPlaylist, setCurrentTrack }: Track
 		});
 	};
 
-	const handlePlay = (track: TrackInterface) => {
+	const handlePlay = (e: any, track: TrackInterface) => {
+		e.stopPropagation();
+		setCurrentTrack(track);
+		setTimeout(() => {
+			setCurrentTrack({ ...track, listening: !track.listening });
+		}, 0);
 		setCurrentPlaylist((prev) => {
 			if (!prev) return prev;
+
+			if (track.listening) {
+				return {
+					...prev,
+					name: prev.name,
+					tracks: prev.tracks?.map((t) => ({ ...t, listening: false })),
+				};
+			}
 
 			return {
 				...prev,
@@ -64,10 +81,28 @@ function TrackDisplayed({ playlist, setCurrentPlaylist, setCurrentTrack }: Track
 				),
 			};
 		});
-		setCurrentTrack(track);
 	};
+
+	const handleSelected = (track: TrackInterface) => {
+		// if (currentTrack?.id === track.id) {
+		// 	setCurrentTrack(null);
+		// }
+		setCurrentTrack(track);
+		setCurrentPlaylist((prev) => {
+			if (!prev) return prev;
+
+			return {
+				...prev,
+				name: prev.name,
+				tracks: prev.tracks?.map((t) =>
+					({ ...t, listening: false }),
+				),
+			};
+		});
+	};
+
 	return (
-		<Table>
+		<Table className='overflow-y-scroll'>
 			{/* <TableCaption>A list of your recent invoices.</TableCaption> */}
 			<TableHeader>
 				<TableRow>
@@ -81,7 +116,7 @@ function TrackDisplayed({ playlist, setCurrentPlaylist, setCurrentTrack }: Track
 			<TableBody>
 				{playlist?.tracks?.map((track, index) => {
 					return (
-						<TableRow key={index}>
+						<TableRow key={index} onClick={() => handleSelected(track)} className='cursor-pointer'>
 							<TableCell>{index + 1}</TableCell>
 							<TableCell className='font-medium'>{track.title}</TableCell>
 							<TableCell>{track.album[0]}</TableCell>
@@ -92,7 +127,7 @@ function TrackDisplayed({ playlist, setCurrentPlaylist, setCurrentTrack }: Track
 										variant='outline'
 										size='sm'
 										className='items-center'
-										onClick={() => handlePlay(track)}>
+										onClick={(e) => handlePlay(e, track)}>
 										{track.listening ? <Pause /> : <Play />}
 									</Button>
 									<Button
@@ -105,7 +140,7 @@ function TrackDisplayed({ playlist, setCurrentPlaylist, setCurrentTrack }: Track
 												? 'hover:bg-red-500 bg-red-500 text-white'
 												: 'bg-gray-100'
 										} items-center`}
-										onClick={() => handleLike(track.id, track.liked === true ? undefined : true)}>
+										onClick={(e) => handleLike(e, track.id, track.liked === true ? undefined : true)}>
 										<ThumbsUp />
 									</Button>
 									<Button
@@ -118,14 +153,14 @@ function TrackDisplayed({ playlist, setCurrentPlaylist, setCurrentTrack }: Track
 												? 'bg-green-500 text-white'
 												: 'bg-gray-100'
 										} items-center`}
-										onClick={() => handleLike(track.id, track.liked === false ? undefined : false)}>
+										onClick={(e) => handleLike(e, track.id, track.liked === false ? undefined : false)}>
 										<ThumbsDown />
 									</Button>
 									<Button
 										className='items-center'
 										variant='destructive'
 										size='sm'
-										onClick={() => handleRemove(track.id)}>
+										onClick={(e) => handleRemove(e, track.id)}>
 										<Trash />
 									</Button>
 								</div>
@@ -143,6 +178,7 @@ export default function MusicList({
 	playlist,
 	setCurrentPlaylist,
 	setCurrentTrack,
+	currentTrack,
 }: MusicListProps) {
 	return (
 		<Card className='w-full h-full flex flex-col shadow-lg overflow-y-scroll'>
@@ -154,7 +190,7 @@ export default function MusicList({
 				</CardTitle>
 			</CardHeader>
 			<CardContent className='flex flex-col gap-2 w-full'>
-				<TrackDisplayed playlist={playlist} setCurrentPlaylist={setCurrentPlaylist} setCurrentTrack={setCurrentTrack} />
+				<TrackDisplayed playlist={playlist} setCurrentPlaylist={setCurrentPlaylist} setCurrentTrack={setCurrentTrack} currentTrack={currentTrack} />
 			</CardContent>
 		</Card>
 	);

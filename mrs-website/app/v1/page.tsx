@@ -4,7 +4,7 @@
 import MusicList from '@/components/MusicList';
 import { TrackInterface } from '../../constant/TrackInterface';
 import MusicPlayer from '@/components/MusicPlayer';
-import { useEffect, useState } from 'react';
+import { createContext, useEffect, useState } from 'react';
 import Playlist from '@/components/Playlist';
 import Research from '@/components/Research';
 import PlaylistInterface from '@/constant/PlaylistInterface';
@@ -73,7 +73,7 @@ export default function Home() {
 	}, []);
 
 	return (
-		<div className='h-screen w-screen p-2 gap-2 flex flex-col'>
+		<div className='h-full w-screen p-2 gap-2 flex flex-col'>
 			<div className='grid grid-cols-5'>
 				<div className='col-span-1'></div>
 				<div className='flex col-span-3 justify-center items-center'>
@@ -83,7 +83,7 @@ export default function Home() {
 				</div>
 				<div className='col-span-1'></div>
 			</div>
-			<div className='h-full w-full gap-2 grid grid-cols-5'>
+			<div className='grow max-h-full w-full gap-2 grid grid-cols-5'>
 				<div className='col-span-1'>
 					<Playlist
 						playlist={playlist}
@@ -91,11 +91,12 @@ export default function Home() {
 						setCurrentPlaylist={setCurrentPlaylist}
 					/>
 				</div>
-				<div className='col-span-3'>
+				<div className='col-span-3 max-h-full overflow-scroll'>
 					<MusicList
 						setCurrentPlaylist={setCurrentPlaylist}
 						playlist={currentPlaylist}
 						setCurrentTrack={setCurrentTrack}
+						currentTrack={currentTrack}
 					/>
 				</div>
 				<div className='col-span-1'>

@@ -10,7 +10,7 @@ export default function RootLayout({
 	children: React.ReactNode;
 }>) {
 	return (
-		<SidebarProvider>
+		<SidebarProvider className='h-screen'>
 			{/* <div className='flex h-screen'> */}
 				{/* <main className='flex-1 p-4'>{children}</main> */}
 				{children}

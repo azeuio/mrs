@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
 		};
 
 		// console.log('Request URL:', BASE_URL);
-		// console.log('Request Params:', params);
+		console.log('Request Params:', params);
 
 		const searchResponse = await axios.get(BASE_URL, { params });
 
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
 		const videoId = searchResults[0].id.videoId;
 		// const videoUrl = `https://www.youtube.com/embed/${videoId}`;
 		const videoUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
-		// console.log('Embed Video URL:', videoUrl);
+		console.log('Embed Video URL:', videoUrl);
 
 		return NextResponse.json({ videoUrl });
 	} catch (error) {

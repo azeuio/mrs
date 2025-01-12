@@ -78,7 +78,7 @@ function Research({
 
 	return (
 		<div className='w-full'>
-			<div className='flex items-center space-x-2'>
+			<form className='flex items-center space-x-2'>
 				<input
 					type='text'
 					className='border rounded p-2 flex-grow'
@@ -87,12 +87,13 @@ function Research({
 					onChange={(e) => setSearchQuery(e.target.value)}
 				/>
 				<button
+					type={loading ? 'button' : 'submit'}
 					className='bg-blue-500 text-white rounded p-2'
 					onClick={handleSearch}
 					disabled={loading}>
 					{loading ? 'Searching...' : 'Search'}
 				</button>
-			</div>
+			</form>
 			{searchError && <div className='text-red-500 mt-4'>{searchError}</div>}
 		</div>
 	);
