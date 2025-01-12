@@ -92,8 +92,13 @@ function TrackDisplayed({ playlist, setCurrentPlaylist, setCurrentTrack }: Track
 			<TableBody>
 				{playlist?.tracks?.map((track, index) => {
 					return (
-						<TableRow className='group hover:cursor-pointer' key={index} onClick={() => handlePlay(track)}>
-							<TableCell className='text-center'>{track.listening ? <AudioLines color='green'/> : index + 1}</TableCell>
+						<TableRow
+							className='group hover:cursor-pointer'
+							key={index}
+							onClick={() => handlePlay(track)}>
+							<TableCell className='text-center'>
+								{track.listening ? <AudioLines color='green' /> : index + 1}
+							</TableCell>
 							<TableCell className='flex items-center gap-2'>
 								<Image
 									src={track.image || '/fallback-image.jpg'}
@@ -124,7 +129,7 @@ function TrackDisplayed({ playlist, setCurrentPlaylist, setCurrentTrack }: Track
 									{!playlist.researched ? <CheckIcon /> : <CirclePlus />}
 								</Button>
 							</TableCell>
-							<TableCell>{!track.duration ? "0:00" : formatDuration(track.duration)} </TableCell>
+							<TableCell>{!track.duration ? '0:00' : formatDuration(track.duration)} </TableCell>
 							<TableCell>
 								<DropdownMenu>
 									<DropdownMenuTrigger className='hidden group-hover:flex items-center justify-center'>
@@ -165,11 +170,17 @@ export default function MusicList({
 				</CardTitle>
 			</CardHeader>
 			<CardContent className='flex flex-col gap-2 w-full'>
-				<TrackDisplayed
-					playlist={playlist}
-					setCurrentPlaylist={setCurrentPlaylist}
-					setCurrentTrack={setCurrentTrack}
-				/>
+				{!playlist?.tracks || !playlist.tracks.length ? (
+					<div>
+						<p className='text-center'>Loading...</p>
+					</div>
+				) : (
+					<TrackDisplayed
+						playlist={playlist}
+						setCurrentPlaylist={setCurrentPlaylist}
+						setCurrentTrack={setCurrentTrack}
+					/>
+				)}
 			</CardContent>
 		</Card>
 	);

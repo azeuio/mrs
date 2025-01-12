@@ -23,20 +23,26 @@ export default function Playlist({ playlist, currentPlaylist, setCurrentPlaylist
 				</CardTitle>
 			</CardHeader>
 			<CardContent className='flex flex-col gap-4 w-full'>
-				{playlist?.map((tracks, index) => (
-					<div
-						key={index}
-						className={`w-full p-4 rounded-md flex items-center justify-between ${
-							currentPlaylist?.name === tracks.name ? 'bg-blue-200' : 'bg-gray-100'
-						}`}>
-						<h4 className='text-lg font-semibold'>{tracks.name}</h4>
-						<Button
-							variant={currentPlaylist?.name === tracks.name ? 'default' : 'outline'}
-							onClick={() => selectPlaylist(index)}>
-							{currentPlaylist?.name === tracks.name ? 'Selected' : 'Select'}
-						</Button>
+				{!playlist || !playlist.length ? (
+					<div>
+						<p className='text-center'>Loading...</p>
 					</div>
-				))}
+				) : (
+					playlist?.map((tracks, index) => (
+						<div
+							key={index}
+							className={`w-full p-4 rounded-md flex items-center justify-between ${
+								currentPlaylist?.name === tracks.name ? 'bg-blue-200' : 'bg-gray-100'
+							}`}>
+							<h4 className='text-lg font-semibold'>{tracks.name}</h4>
+							<Button
+								variant={currentPlaylist?.name === tracks.name ? 'default' : 'outline'}
+								onClick={() => selectPlaylist(index)}>
+								{currentPlaylist?.name === tracks.name ? 'Selected' : 'Select'}
+							</Button>
+						</div>
+					))
+				)}
 			</CardContent>
 		</Card>
 	);
