@@ -1,6 +1,7 @@
 from typing import List
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from rdflib import Graph, Namespace, URIRef
 import requests
 import api
 from mongoengine import (
@@ -9,6 +10,7 @@ from mongoengine import (
     DateTimeField,
     ReferenceField,
     IntField,
+    ListField,
     connect,
 )
 from datetime import datetime, timezone
@@ -38,6 +40,10 @@ class Song(Document):
     artist = StringField()
     album = StringField()
     release_date = DateTimeField()
+    duration = IntField()
+    image = StringField()
+    external_urls = StringField()
+    listened = IntField(default=0)
 
 
 class UserSongPlay(Document):
@@ -47,6 +53,11 @@ class UserSongPlay(Document):
     last_played = DateTimeField(
         default=datetime.now(timezone.utc)
     )  # Fix with timezone-aware datetime
+
+
+class Playlist(Document):
+    name = StringField(required=True)
+    content = ListField(ReferenceField(Song))
 
 
 # Routes
@@ -90,11 +101,10 @@ def register():
     return jsonify({"message": "User created successfully!"}), 201
 
 
-@app.route("/play", methods=["POST"])
-def add_or_update_play():
+@app.post("/play/<song_title>")
+def add_or_update_play(song_title):
     data = request.get_json()
 
-    song_title = data.get("title")
     username = data.get("username")
 
     if not song_title or not username:
@@ -125,6 +135,9 @@ def add_or_update_play():
             artist=data.get("artist", ""),
             album=data.get("album", ""),
             release_date=datetime.now(timezone.utc),
+            duration=data.get("duration", 0),
+            image=data.get("image", ""),
+            external_urls=data.get("external_urls", ""),
         )
         song.save()
 
@@ -158,6 +171,10 @@ def least_played_songs():
                     "album": song.album,
                     "release_date": song.release_date,
                     "total_plays": entry["total_plays"],
+                    "duration": song.duration,
+                    "image": song.image,
+                    "external_urls": song.external_urls,
+                    "listened": song.listened,
                 }
             )
 
@@ -338,6 +355,68 @@ def get_similar_artists_from_wikidata():
     return jsonify(
         [item["similarArtistLabel"]["value"] for item in data["results"]["bindings"]]
     )
+
+
+@app.post("/api/playlists")
+def create_playlist():
+    data = request.get_json()
+    playlist_name = data.get("name")
+    content = data.get("tracks")
+    print(f"{content[0]=}")
+    for song in content:
+        song_obj = Song.objects(title=song["title"]).first()
+        if not song_obj:
+            song_obj = Song(
+                title=song["title"],
+                artist=song["artist"],
+                album=song["album"],
+                # release_date=datetime.now(timezone.utc),
+                duration=song["duration"],
+                image=song["image"],
+                external_urls=song["external_urls"],
+                listened=song["listened"],
+            )
+            song_obj.save()
+    playlist = Playlist(name=playlist_name)
+    playlist.content = [Song.objects(title=song["title"]).first() for song in content]
+    playlist.save()
+    return Playlist.objects(name=playlist_name).to_json()
+
+
+@app.get("/api/playlists")
+def get_playlists():
+    playlists: List[Playlist] = Playlist.objects()
+    return jsonify(
+        [
+            {
+                "name": playlist.name,
+                "tracks": [
+                    {
+                        "title": song["title"],
+                        "artist": song["artist"],
+                        "album": song["album"],
+                        "release_date": song["release_date"],
+                        "duration": song["duration"],
+                        "image": song["image"],
+                        "external_urls": song["external_urls"],
+                        "listened": song["listened"],
+                    }
+                    for song in playlist.content
+                ],
+            }
+            for playlist in playlists
+        ]
+    )
+
+
+@app.delete("/api/playlists/<name>")
+def delete_playlist(name):
+    print(f"{name=}")
+    playlist = Playlist.objects(name=name).first()
+    if not playlist:
+        return jsonify({"error": "Playlist not found!"}), 404
+    playlist.delete()
+    return jsonify({"message": "Playlist deleted!"}), 200
 
 
 if __name__ == "__main__":

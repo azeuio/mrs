@@ -75,7 +75,9 @@ export default function Home() {
 		});
 	}, []);
 
-	useEffect(() => {
+	useEffect(() => { /* fetch playlist from backend */
+		if (currentPlaylist?.isTemporary) return;
+		const prevSelected = currentPlaylist?.name;
 		const fetchPlaylist = async () => {
 			try {
 				const response_least_played = await axios.get('http://127.0.0.1:5000/least_played', {
@@ -85,22 +87,30 @@ export default function Home() {
 				});
 				const least_played_songs = response_least_played.data.least_played_songs;
 
-				const artistResponses = await Promise.all(
-					least_played_songs.map((song: any) =>
-						axios.get(`http://127.0.0.1:5000/api/artist/similar?q=${song.artist}`, {
-							headers: {
-								'Content-Type': 'application/json',
-							},
-						}),
-					),
-				);
+				// const artistResponses = await Promise.all(
+				// 	least_played_songs.map((song: any) =>
+				// 		axios.get(`http://127.0.0.1:5000/api/artist/similar?q=${song.artist}`, {
+				// 			headers: {
+				// 				'Content-Type': 'application/json',
+				// 			},
+				// 		}),
+				// 	),
+				// );
 
-				const artistSongsMap = artistResponses
-					.map((response, index) => ({
-						artist: least_played_songs[index].artist,
-						songs: response.data,
-					}))
-					.reverse();
+				// const artistSongsMap = artistResponses
+				// 	.map((response, index) => ({
+				// 		artist: least_played_songs[index].artist,
+				// 		songs: response.data,
+				// 	}))
+				// 	.reverse();
+				
+				const savedPlaylists = await fetch('http://localhost:5000/api/playlists', {
+					method: 'GET',
+					headers: {
+						'Content-Type': 'application/json',
+					},
+				}).then((res) => res.json());
+				console.log('data', savedPlaylists);
 
 				const formattedPlaylist: PlaylistInterface[] = [
 					{
@@ -118,32 +128,76 @@ export default function Home() {
 							liked: undefined,
 						})),
 					},
-					...artistSongsMap.map((artistData) => ({
-						name: artistData.artist,
-						researched: false,
-						tracks: artistData.songs?.map((song: any) => ({
-							id: song.title || '',
-							title: song.title || '',
-							artist: song.artist || '',
-							album: song.album,
-							release_date: song.release_date || '',
-							image: '/disc.webp',
-							listened: false,
-							listening: false,
-							liked: undefined,
-						})),
-					})),
+					...savedPlaylists,
+					// ...savedPlaylists.map((playlistData: TrackInterface) => ({
+					// 	name: playlistData.artist,
+					// 	researched: false,
+					// 	tracks: playlistData.songs?.map((song: any) => ({
+					// 		id: song.title || '',
+					// 		title: song.title || '',
+					// 		artist: song.artist || '',
+					// 		album: song.album,
+					// 		release_date: song.release_date || '',
+					// 		image: '/disc.webp',
+					// 		listened: false,
+					// 		listening: false,
+					// 		liked: undefined,
+					// 	})),
+					// })),
 				];
 
 				setPlaylist(formattedPlaylist);
-				setCurrentPlaylist(formattedPlaylist[0]);
+				if (prevSelected){
+					const idx = formattedPlaylist.findIndex((playlist) => playlist.name === prevSelected);
+					if (idx !== -1)
+						setCurrentPlaylist(formattedPlaylist[idx]);
+					else
+						setCurrentPlaylist(formattedPlaylist[0]);
+				}
+				else
+					setCurrentPlaylist(formattedPlaylist[0]);
 			} catch (error) {
 				console.error('Error fetching playlists:', error);
 			}
 		};
 
 		fetchPlaylist();
-	}, []);
+	}, [playlist.length]);
+
+	useEffect(() => {
+		if (currentPlaylist?.name !== 'Least Played Songs') return;
+		console.log('fetching least played songs');
+		fetch('http://localhost:5000/api/least_played', {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		})
+			.then((res) => res.json())
+			.then((data) => {
+				const formattedPlaylist: PlaylistInterface = {
+					name: 'Least Played Songs',
+					researched: false,
+					tracks: data.least_played_songs.map((song: any) => ({
+						id: song.title,
+						title: song.title,
+						artist: song.artist,
+						album: song.album,
+						release_date: song.release_date,
+						image: '/disc.webp',
+						listened: false,
+						listening: false,
+						liked: undefined,
+					})),
+				};
+				playlist[0] = formattedPlaylist;
+				setPlaylist(playlist);
+				setCurrentPlaylist(formattedPlaylist);
+			})
+			.catch((error) => {
+				console.error('Error fetching least played songs:', error);
+			});
+	}, [currentPlaylist]);
 
 	return (
 		<div className='h-screen w-screen p-2 gap-2 flex flex-col'>
@@ -166,6 +220,8 @@ export default function Home() {
 				</div>
 				<div className='h-[95vh] col-span-3'>
 					<MusicList
+						playlists={playlist}
+						setPlaylist={setPlaylist}
 						setCurrentPlaylist={setCurrentPlaylist}
 						playlist={currentPlaylist}
 						setCurrentTrack={setCurrentTrack}

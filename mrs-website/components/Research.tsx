@@ -108,7 +108,7 @@ function Research({
 
 	return (
 		<div className='w-full'>
-			<div className='flex items-center space-x-2'>
+			<form method='GET' className='flex items-center space-x-2'>
 				<Input
 					type='text'
 					className='border rounded p-2 flex-grow'
@@ -122,7 +122,7 @@ function Research({
 					disabled={loading}>
 					{loading ? 'Searching...' : 'Search'}
 				</Button>
-			</div>
+			</form>
 			{searchError && <div className='text-red-500 mt-4'>{searchError}</div>}
 		</div>
 	);

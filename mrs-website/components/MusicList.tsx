@@ -21,11 +21,14 @@ import {
 } from './ui/dropdown-menu';
 import { Button } from './ui/button';
 import { cn } from '@/lib/utils';
+import React from 'react';
 
 type MusicListProps = {
 	playlist: PlaylistInterface | undefined;
 	setCurrentPlaylist: React.Dispatch<React.SetStateAction<PlaylistInterface | undefined>>;
 	setCurrentTrack: (track: TrackInterface) => void;
+	setPlaylist: React.Dispatch<React.SetStateAction<PlaylistInterface[]>>;
+	playlists: PlaylistInterface[];
 	title?: string;
 };
 
@@ -67,6 +70,18 @@ function TrackDisplayed({ playlist, setCurrentPlaylist, setCurrentTrack }: Track
 			};
 		});
 		setCurrentTrack(track);
+		const username = document.cookie.split('; ').find((row) => row.startsWith('user_email'))?.split('=')[1];
+		if (!username) {
+			console.error('No user found');
+			return;
+		}
+		fetch(`http://localhost:5000/play/${JSON.stringify(track.title)}`, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify({ username }),
+		});
 	};
 
 	return (
@@ -154,8 +169,46 @@ export default function MusicList({
 	playlist,
 	setCurrentPlaylist,
 	setCurrentTrack,
+	setPlaylist,
+	playlists,
 }: MusicListProps) {
 	console.log('playlist', playlist);
+	const [isBusy, setIsBusy] = React.useState(false);
+
+	const savePlaylist = async () => {
+		if (!playlist) return;
+		setIsBusy(true);
+		const prevName = playlist.name;
+		if (playlist.name.toLowerCase() === 'least played songs') {
+			playlist.name = `Least Played Songs ${new Date().toLocaleDateString()}`;
+		}
+		playlist.name = playlist.name.replace('Results for ', '');
+		const newPlaylist = await fetch('http://localhost:5000/api/playlists', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			body: JSON.stringify(playlist),
+		}).then((res) => res.json());
+		setPlaylist([...playlists.filter((p) => p.name !== prevName), newPlaylist]);
+		setCurrentPlaylist(newPlaylist);
+		setIsBusy(false);
+	};
+
+	const deletePlaylist = async () => {
+		if (!playlist) return;
+		setIsBusy(true);
+		const response = await fetch(`http://localhost:5000/api/playlists/${playlist.name}`, {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		});
+		setCurrentPlaylist(undefined);
+		setPlaylist(playlists.filter((p) => p.name !== playlist.name));
+		setIsBusy(false);
+	};
+
 	return (
 		<Card className='w-full h-full flex flex-col shadow-lg overflow-y-scroll'>
 			<CardHeader>
@@ -163,10 +216,29 @@ export default function MusicList({
 					<h3 className='scroll-m-20 text-2xl font-semibold tracking-tight'>
 						{playlist?.name || title}
 					</h3>
+					<div className='flex justify-end'>
+						{(playlist?.isTemporary || playlist?.name?.toLowerCase() === 'least played songs') ? (
+							<Button
+								className='bg-blue-500 text-white rounded p-2'
+								onClick={savePlaylist}
+								disabled={isBusy}
+							>
+									Save Playlist
+							</Button>
+						) : (
+							<Button
+								className='bg-blue-500 text-white rounded p-2'
+								onClick={deletePlaylist}
+								disabled={isBusy}
+							>
+									Delete playlist
+							</Button>
+						)}
+					</div>
 				</CardTitle>
 			</CardHeader>
 			<CardContent className='flex flex-col gap-2 w-full'>
-				{!playlist?.tracks || !playlist.tracks.length ? (
+				{!playlist?.tracks ? (
 					<div>
 						<p className='text-center'>Loading...</p>
 					</div>
