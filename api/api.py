@@ -639,6 +639,7 @@ class Search(AbstractSearch):
     @overload
     def entity(self, entity: Literal["url"]) -> UrlSearch: ...
     def entity(self, entity: ENTITY_TYPING):
+        self._entity = entity
         if entity == "area":
             return AreaSearch.new_from(self)
         if entity == "artist":
@@ -665,7 +666,6 @@ class Search(AbstractSearch):
             return WorkSearch.new_from(self)
         if entity == "url":
             return UrlSearch.new_from(self)
-        self._entity = entity
         return self
 
     def query(self, query: str):

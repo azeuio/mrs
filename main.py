@@ -314,6 +314,32 @@ def similar_artists(id):
     return jsonify(res)
 
 
+@app.get("/api/artist/search_similar")
+def get_similar_artists_from_wikidata():
+    artist_name = request.args.get("artist")
+    limit = request.args.get("limit", 10)
+    print(f"Searching similar artists for {artist_name}")
+    query = f"""
+    SELECT ?similarArtistLabel WHERE {{
+      ?artist rdfs:label "{artist_name.capitalize()}"@en.
+      ?artist wdt:P136 ?genre.
+      ?similarArtist wdt:P136 ?genre.
+      ?similarArtist rdfs:label ?similarArtistLabel.
+      FILTER(LANG(?similarArtistLabel) = "en")
+    }}
+    LIMIT {limit}
+    """
+    url = "https://query.wikidata.org/sparql"
+    headers = {"User-Agent": "MusicRecommender/1.0 (example@example.com)"}
+    response = requests.get(
+        url, headers=headers, params={"format": "json", "query": query}
+    )
+    data = response.json()
+    return jsonify(
+        [item["similarArtistLabel"]["value"] for item in data["results"]["bindings"]]
+    )
+
+
 if __name__ == "__main__":
     # stromae = api.Search().entity("artist").query("stromae").execute()
     # print(stromae)

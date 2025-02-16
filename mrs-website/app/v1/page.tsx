@@ -9,6 +9,17 @@ import Playlist from '@/components/Playlist';
 import Research from '@/components/Research';
 import PlaylistInterface from '@/constant/PlaylistInterface';
 import axios from 'axios';
+import querystring from 'querystring';
+
+const generateRandomString = (length: number) => {
+	var text = '';
+	var possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+	for (var i = 0; i < length; i++)
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+	return text;
+}
 
 export default function Home() {
 	const [playlist, setPlaylist] = useState<PlaylistInterface[]>([]);
@@ -17,6 +28,52 @@ export default function Home() {
 	const [currentTrack, setCurrentTrack] = useState<TrackInterface | undefined>(
 		currentPlaylist?.tracks ? currentPlaylist.tracks[0] : undefined,
 	);
+
+	useEffect(() => {
+		const client_id = 'e57b4566c37e4349bc9c9727912330eb'
+  		const client_secret = 'e6594b856da641bc90cbc0d7b41d05b0';
+		var state = generateRandomString(16);
+		var scope = 'user-read-private user-read-email';
+
+		// open in a new window 'https://accounts.spotify.com/authorize?'
+		const popup = window.open('https://accounts.spotify.com/authorize?' +
+			querystring.stringify({
+				response_type: 'code',
+				client_id: client_id,
+				scope: scope,
+				redirect_uri: 'http://localhost:3000/redirect/spotify',
+				state: state
+			}), '_blank', 'location=yes,height=570,width=520,scrollbars=yes,status=yes');
+
+		popup?.addEventListener('load', () => {
+			const url = new URL(popup?.location.href);
+			const code = url.searchParams.get('code');
+			const state = url.searchParams.get('state');
+			if (code && state) {
+				const params = new URLSearchParams();
+				params.append('code', code);
+				params.append('redirect_uri', 'http://localhost:3000/redirect/spotify');
+				params.append('grant_type', 'authorization_code');
+				fetch('https://accounts.spotify.com/api/token', {
+				method: 'POST',
+				body: params,
+				headers: {
+					'content-type': 'application/x-www-form-urlencoded',
+					'Authorization': 'Basic ' + (Buffer.from(client_id + ':' + client_secret).toString('base64'))
+				}
+				})
+				.then((response) => response.json())
+				.then((data) => {
+					document.cookie = `spotify_access_token=${data.access_token}`;
+					document.cookie = `spotify_refresh_token=${data.refresh_token}`;
+					document.cookie = `spotify_token_type=${data.token_type}`;
+					document.cookie = `spotify_expires_in=${data.expires_in}`;
+				}).finally(() => {
+					popup?.close();
+				});
+			}
+		});
+	}, []);
 
 	useEffect(() => {
 		const fetchPlaylist = async () => {

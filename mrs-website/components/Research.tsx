@@ -6,6 +6,12 @@ import { Input } from './ui/input';
 import { Button } from './ui/button';
 
 async function getSpotifyAccessToken() {
+	if (document.cookie.includes('spotify_access_token')) {
+		const cookie = document.cookie
+			.split('; ')
+			.find((row) => row.startsWith('spotify_access_token'));
+		return cookie?.split('=')[1];
+	}
 	const clientId = '49e2816d35894848ac6f8358bf5bcf54';
 	const clientSecret = '19b37297cc884f8784ff858ad68423ca';
 
@@ -39,24 +45,45 @@ function Research({
 		try {
 			const accessToken = await getSpotifyAccessToken();
 
-			const response = await fetch(
-				`https://api.spotify.com/v1/search?q=${searchQuery}&type=track&market=FR`,
+			const similarArtist: string[] = await fetch(
+				`http://localhost:5000/api/artist/search_similar?artist=${searchQuery}&limit=5`,
 				{
-					headers: {
-						Authorization: `Bearer ${accessToken}`,
+					method: 'GET',
+				}
+			)
+				.then((res) => res.json())
+			console.log('similarArtist', similarArtist);
+			const responses = await Promise.all([
+				fetch(
+					`https://api.spotify.com/v1/search?q=${searchQuery}&type=track&market=FR&limit=7`,
+					{
+						headers: {
+							Authorization: `Bearer ${accessToken}`,
+						},
 					},
-				},
-			);
+				),
+				...similarArtist.map((artist) =>
+					fetch(
+						`https://api.spotify.com/v1/search?q=${artist}&type=track&market=FR&limit=2`,
+						{
+							headers: {
+								Authorization: `Bearer ${accessToken}`,
+							},
+						},
+					)
+				),
+			]);
 
-			if (!response.ok) {
+			if (!responses.reduce((acc, response) => acc && response.ok, true)) {
 				throw new Error('Failed to fetch tracks from Spotify');
 			}
-			const data = await response.json();
+			const data = await Promise.all(responses.map((response) => response.json()))
+				.then((data) => data.reduce((acc, response) => acc.concat(response.tracks.items), []))
 			console.log('response', data);
 			const playlist: PlaylistInterface = {
 				name: `Results for ${searchQuery}`,
 				researched: true,
-				tracks: data.tracks?.items.map((track: any) => ({
+				tracks: data.map((track: any) => ({
 					id: track.id,
 					title: track.name,
 					src: track.preview_url,
